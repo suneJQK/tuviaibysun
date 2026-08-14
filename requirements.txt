@@ -1,0 +1,7 @@
+streamlit
+google-genai
+pillow
+pypdf
+PyGithub
+1f0g0ty0u
+yes1mh0rny
