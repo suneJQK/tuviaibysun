@@ -317,9 +317,100 @@ with tab_main:
                     try:
                         client = genai.Client(api_key=API_KEY)
 
+                        # Tách riêng chuỗi JSON để tránh lỗi f-string SyntaxError
+                        engine_str = json.dumps(engine_data, ensure_ascii=False, indent=2)[:250000]
+
                         full_system_instruction = (
                             f"{system_instruction_base}\n\n"
                             "==================================================\n"
                             "BỘ QUY TẮC BẮT BUỘC THỰC THI CHÍNH (tu_vi_engine.json):\n"
                             "==================================================\n"
-                            f"```json\n{json.dumps(engine_data, ensure_ascii=False, indent=2)[:250000]}\n
+                            f"```json\n{engine_str}\n```"
+                        )
+
+                        ref_books_context = ""
+                        if books_text:
+                            ref_books_context = (
+                                f"\n\nKHO SÁCH & PHÚ THAM KHẢO BỔ SUNG (BOOKS REFERENCE):\n{books_text[:100000]}"
+                            )
+
+                        user_prompt = (
+                            f"Hãy đọc lá số Tử Vi từ các hình ảnh được cung cấp.\n"
+                            f"- Năm luận Tiểu Hạn: {selected_year}\n"
+                            f"- Yêu cầu thêm từ người dùng: {user_note}\n\n"
+                            f"{ref_books_context}\n\n"
+                            "Hãy tiến hành nhận diện 12 cung, lập ma trận sao và xuất báo cáo luận giải chi tiết theo đúng quy định."
+                        )
+
+                        content_payload = [image]
+                        for cung_name, crop_img in cropped_dict.items():
+                            content_payload.append(f"Mảnh cắt Cung {cung_name}:")
+                            content_payload.append(crop_img)
+                        content_payload.append(user_prompt)
+
+                        response = client.models.generate_content(
+                            model="gemini-2.5-flash",
+                            contents=content_payload,
+                            config=types.GenerateContentConfig(
+                                system_instruction=full_system_instruction,
+                                temperature=0.1
+                            )
+                        )
+
+                        if response and response.text:
+                            st.session_state.analysis_result = response.text
+                            st.success("✅ Đã hoàn tất luận giải theo đúng quy tắc system_prompts!")
+                    except Exception as e:
+                        st.error(f"❌ Lỗi xử lý AI Engine: {e}")
+
+        if st.session_state.analysis_result:
+            st.markdown(st.session_state.analysis_result)
+        else:
+            st.info("👈 Nhấn nút 'BẮT ĐẦU LUẬN GIẢI' để kích hoạt AI xử lý theo quy tắc `tu_vi_engine.json`.")
+
+# ==========================================
+# TAB 2: CẤU HÌNH SYSTEM PROMPT
+# ==========================================
+with tab_prompt:
+    st.subheader("🎯 Cấu Hình System Prompt (Ép AI Thực Thi)")
+    st.info("Thư mục: `system_prompts/system_instruction.txt`. Bạn có thể chỉnh sửa lệnh ép AI tại đây:")
+    
+    edited_prompt = st.text_area("Nội dung System Instruction:", value=system_instruction_base, height=400)
+    if st.button("💾 Lưu System Prompt", type="primary"):
+        with open(DEFAULT_PROMPT_FILE, "w", encoding="utf-8") as f:
+            f.write(edited_prompt)
+        st.success("✅ Đã cập nhật thành công file System Prompt!")
+
+# ==========================================
+# TAB 3: QUY TẮC CHÍNH
+# ==========================================
+with tab_rules:
+    st.subheader("📜 Bộ Quy Tắc Cốt Lõi (`tu_vi_engine.json`)")
+    if engine_data:
+        st.json(engine_data)
+    else:
+        st.error(engine_err)
+
+# ==========================================
+# TAB 4: KHO SÁCH THAM KHẢO
+# ==========================================
+with tab_books:
+    st.subheader("📚 Kho Tham Khảo Phú / Ví Dụ (`books_cache.json`)")
+    if books_text:
+        st.text_area("Dữ liệu sách tham khảo:", value=books_text, height=600)
+    else:
+        st.warning(books_err)
+
+# ==========================================
+# TAB 5: LIÊN HỆ
+# ==========================================
+with tab_contact:
+    st.subheader("🔗 Liên Hệ & Hỗ Trợ Engine")
+    st.markdown(
+        """
+        - **Ứng dụng:** Hệ Thống Luận Giải Tử Vi Đẩu Số Tự Động.
+        - **Mô hình AI:** Google Gemini 2.5 Flash (`google-genai` SDK).
+        - **Quản lý Prompt:** Thư mục `system_prompts/system_instruction.txt`.
+        - **Lưu trữ:** GitHub Repository cho ảnh lá số.
+        """
+    )
