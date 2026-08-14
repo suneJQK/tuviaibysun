@@ -21,25 +21,11 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. TÙY CHỈNH GIAO DIỆN (CSS)
+# 2. TÙY CHỈNH GIAO DIỆN (CSS) - ĐÃ LOẠI BỎ ẨN/MỞ SIDEBAR
 # ==========================================
 st.markdown(
     """
     <style>
-    /* Hiển thị cưỡng chế nút đóng/mở Sidebar */
-    button[data-testid="stSidebarCollapseButton"],
-    button[data-testid="baseButton-header"],
-    div[data-testid="stSidebarNav"] button,
-    [data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
-    }
-    [data-testid="collapsedControl"] {
-        top: 0.5rem !important;
-        left: 0.5rem !important;
-    }
     /* Ẩn Toolbar và Footer mặc định */
     div[data-testid="stToolbar"] { visibility: hidden; }
     footer { visibility: hidden; }
@@ -85,10 +71,9 @@ BOOKS_FILE = BASE_DIR / "books_cache.json"
 
 # --- Quản lý thư mục System Prompt ---
 PROMPTS_DIR = BASE_DIR / "system_prompts"
-PROMPTS_DIR.mkdir(exist_ok=True)  # Tự động tạo thư mục nếu chưa có
+PROMPTS_DIR.mkdir(exist_ok=True)
 DEFAULT_PROMPT_FILE = PROMPTS_DIR / "system_instruction.txt"
 
-# Nội dung System Prompt mặc định nâng cao (Strict Rules)
 DEFAULT_SYSTEM_PROMPT = """TÊN VAI TRÒ: Engine Luận Giải Tử Vi Đẩu Số Chuyên Sâu.
 
 NHIỆM VỤ CỐT LÕI:
@@ -102,7 +87,6 @@ QUY TẮC BẮT BUỘC (STRICT PROTOCOL):
 5. ĐỘ CHÍNH XÁC CAO: Đọc đúng tên sao từ mảnh cắt 12 cung được gửi kèm. Không đoán mò nếu ảnh bị mờ.
 """
 
-# Khởi tạo file prompt mặc định nếu chưa tồn tại
 if not DEFAULT_PROMPT_FILE.exists():
     with open(DEFAULT_PROMPT_FILE, "w", encoding="utf-8") as f:
         f.write(DEFAULT_SYSTEM_PROMPT)
@@ -312,7 +296,6 @@ with tab_main:
                     try:
                         client = genai.Client(api_key=API_KEY)
 
-                        # GHÉP SYSTEM PROMPT NGUYÊN BẢN CÙNG JSON QUY TẮC
                         full_system_instruction = (
                             f"{system_instruction_base}\n\n"
                             "==================================================\n"
@@ -341,9 +324,8 @@ with tab_main:
                             content_payload.append(crop_img)
                         content_payload.append(user_prompt)
 
-                        # Đặt Temperature siêu thấp (0.1) để ép AI tuân thủ tuyệt đối quy tắc
                         response = client.models.generate_content(
-                            model="gemini-3.6-flash",
+                            model="gemini-2.5-flash",
                             contents=content_payload,
                             config=types.GenerateContentConfig(
                                 system_instruction=full_system_instruction,
@@ -380,7 +362,7 @@ with tab_prompt:
 # TAB 3: QUY TẮC CHÍNH
 # ==========================================
 with tab_rules:
-    st.subheader("📜 Bộ Quy Tắc Cốt Lõi (`tu_vi_engine.json`)").
+    st.subheader("📜 Bộ Quy Tắc Cốt Lõi (`tu_vi_engine.json`)")
     if engine_data:
         st.json(engine_data)
     else:
@@ -390,7 +372,7 @@ with tab_rules:
 # TAB 4: KHO SÁCH THAM KHẢO
 # ==========================================
 with tab_books:
-    st.subheader("📚 Kho Tham Khảo Phú / Ví Dụ (`books_cache.json`)").
+    st.subheader("📚 Kho Tham Khảo Phú / Ví Dụ (`books_cache.json`)")
     if books_text:
         st.text_area("Dữ liệu sách tham khảo:", value=books_text, height=600)
     else:
