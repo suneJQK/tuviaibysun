@@ -10,7 +10,9 @@ from github import Github, GithubException
 from google import genai
 from google.genai import types
 
-# --- 1. CẤU HÌNH TRANG STREAMLIT ---
+# ==========================================
+# 1. CẤU HÌNH TRANG STREAMLIT
+# ==========================================
 st.set_page_config(
     page_title="Tử Vi Đẩu Số - Luận Giải Tự Động Engine",
     page_icon="☯️",
@@ -18,7 +20,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- 2. TÙY CHỈNH GIAO DIỆN (CSS) ---
+# ==========================================
+# 2. TÙY CHỈNH GIAO DIỆN (CSS)
+# ==========================================
 st.markdown(
     """
     <style>
@@ -40,7 +44,7 @@ st.markdown(
     div[data-testid="stToolbar"] { visibility: hidden; }
     footer { visibility: hidden; }
     .stApp { background-color: #0e1117; }
-    
+
     /* Style tiêu đề chính */
     .main-header {
         font-size: 2.2rem;
@@ -50,7 +54,6 @@ st.markdown(
         margin-bottom: 0.5rem;
         text-shadow: 0px 0px 10px rgba(246, 211, 101, 0.2);
     }
-    
     /* Style nút bấm nổi bật */
     div.stButton > button[kind="primary"] {
         background: linear-gradient(90deg, #d4af37 0%, #f6d365 100%);
@@ -69,7 +72,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- 3. LẤY SECRETS & CẤU HÌNH ĐƯỜNG DẪN FILE ---
+# ==========================================
+# 3. LẤY SECRETS & CẤU HÌNH ĐƯỜNG DẪN FILE
+# ==========================================
 API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", os.environ.get("GITHUB_TOKEN", ""))
 GITHUB_REPO = st.secrets.get("GITHUB_REPO", os.environ.get("GITHUB_REPO", ""))
@@ -78,7 +83,41 @@ BASE_DIR = Path(__file__).parent
 ENGINE_FILE = BASE_DIR / "tu_vi_engine.json"
 BOOKS_FILE = BASE_DIR / "books_cache.json"
 
-# --- 4. HÀM NẠP BỘ QUY TẮC CHÍNH (tu_vi_engine.json) ---
+# --- Quản lý thư mục System Prompt ---
+PROMPTS_DIR = BASE_DIR / "system_prompts"
+PROMPTS_DIR.mkdir(exist_ok=True)  # Tự động tạo thư mục nếu chưa có
+DEFAULT_PROMPT_FILE = PROMPTS_DIR / "system_instruction.txt"
+
+# Nội dung System Prompt mặc định nâng cao (Strict Rules)
+DEFAULT_SYSTEM_PROMPT = """TÊN VAI TRÒ: Engine Luận Giải Tử Vi Đẩu Số Chuyên Sâu.
+
+NHIỆM VỤ CỐT LÕI:
+Bạn là một hệ thống máy tính thuần túy thực thi suy luận logic theo đúng ma trận quy tắc trong `tu_vi_engine.json`. Bạn KHÔNG ĐƯỢC BỊA ĐẶT hay suy diễn nằm ngoài quy tắc được cung cấp.
+
+QUY TẮC BẮT BUỘC (STRICT PROTOCOL):
+1. TUÂN THỦ 100% REGEX & JSON: Đọc kỹ file `tu_vi_engine.json` bên dưới. Mọi định dạng xuất báo cáo, các bước suy luận, thứ tự ưu tiên sao, đắc miếu bình hãm, hóa khí, xung chiếu, tam hợp PHẢI làm chính xác theo JSON.
+2. KHÔNG TỰ Ý THÊM BỚT: Nếu một trường hợp không có trong quy tắc, hãy ghi rõ "Không có dữ liệu quy tắc cho trường hợp này".
+3. TRÍCH DẪN PHÚ VÀ BẢO CHỨNG: Khi đưa ra kết luận về một cung hay mệnh, bắt buộc phải trích dẫn câu phú tương ứng trong file Kho Sách Tham Khảo (nếu có).
+4. ĐỊNH DẠNG BÁO CÁO: Xuất kết quả theo đúng cấu trúc Markdown được quy định chi tiết ở cuối file `tu_vi_engine.json`.
+5. ĐỘ CHÍNH XÁC CAO: Đọc đúng tên sao từ mảnh cắt 12 cung được gửi kèm. Không đoán mò nếu ảnh bị mờ.
+"""
+
+# Khởi tạo file prompt mặc định nếu chưa tồn tại
+if not DEFAULT_PROMPT_FILE.exists():
+    with open(DEFAULT_PROMPT_FILE, "w", encoding="utf-8") as f:
+        f.write(DEFAULT_SYSTEM_PROMPT)
+
+# ==========================================
+# 4. HÀM NẠP SYSTEM PROMPT VÀ QUY TẮC
+# ==========================================
+@st.cache_data(ttl=3600)
+def load_system_instruction():
+    """Nạp nội dung System Prompt từ thư mục system_prompts/"""
+    if DEFAULT_PROMPT_FILE.exists():
+        with open(DEFAULT_PROMPT_FILE, "r", encoding="utf-8") as f:
+            return f.read()
+    return DEFAULT_SYSTEM_PROMPT
+
 @st.cache_data(ttl=3600)
 def load_engine_rules():
     """Bắt buộc nạp file tu_vi_engine.json làm bộ quy tắc cốt lõi"""
@@ -87,11 +126,13 @@ def load_engine_rules():
     try:
         with open(ENGINE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return data, None
+            return data, None
     except Exception as e:
         return None, f"Lỗi cấu trúc file {ENGINE_FILE.name}: {str(e)}"
 
-# --- 5. HÀM NẠP KHO SÁCH THAM KHẢO (books_cache.json) ---
+# ==========================================
+# 5. HÀM NẠP KHO SÁCH THAM KHẢO
+# ==========================================
 @st.cache_data(ttl=3600)
 def load_books_reference():
     """Nạp file books_cache.json dùng làm tài liệu tham khảo câu phú/ví dụ"""
@@ -100,15 +141,17 @@ def load_books_reference():
     try:
         with open(BOOKS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-        if isinstance(data, list):
-            return "\n\n".join([str(item) for item in data]), None
-        elif isinstance(data, dict):
-            return json.dumps(data, ensure_ascii=False, indent=2), None
-        return str(data), None
+            if isinstance(data, list):
+                return "\n\n".join([str(item) for item in data]), None
+            elif isinstance(data, dict):
+                return json.dumps(data, ensure_ascii=False, indent=2), None
+            return str(data), None
     except Exception as e:
         return None, f"Lỗi đọc file {BOOKS_FILE.name}: {str(e)}"
 
-# --- 6. HÀM LƯU ẢNH LÊN GITHUB ---
+# ==========================================
+# 6. HÀM LƯU ẢNH LÊN GITHUB
+# ==========================================
 def upload_to_github(uploaded_file):
     if not GITHUB_TOKEN or not GITHUB_REPO:
         return False, "Thiếu 'GITHUB_TOKEN' hoặc 'GITHUB_REPO' trong Secrets."
@@ -129,7 +172,9 @@ def upload_to_github(uploaded_file):
     except Exception as e:
         return False, str(e)
 
-# --- 7. HÀM CẮT 12 CUNG LÁ SỐ ---
+# ==========================================
+# 7. HÀM CẮT 12 CUNG LÁ SỐ
+# ==========================================
 def crop_12_cung_overlap(img, top_cut=0, bottom_cut=3, side_cut=0, overlap_px=15):
     width, height = img.size
     left_start = width * (side_cut / 100)
@@ -144,8 +189,9 @@ def crop_12_cung_overlap(img, top_cut=0, bottom_cut=3, side_cut=0, overlap_px=15
 
     grid_map = {
         "Hợi": (3, 3), "Tý": (2, 3), "Sửu": (1, 3), "Dần": (0, 3),
-        "Mão": (0, 2), "Thìn": (0, 1), "Tị": (0, 0), "Ngọ": (1, 0),
-        "Mùi": (2, 0), "Thân": (3, 0), "Dậu": (3, 1), "Tuất": (3, 2),
+        "Mão": (0, 2),                              "Thìn": (0, 1),
+        "Tị": (0, 0),  "Ngọ": (1, 0), "Mùi": (2, 0), "Thân": (3, 0),
+        "Dậu": (3, 1),                              "Tuất": (3, 2),
     }
 
     cropped_cungs = {}
@@ -157,13 +203,18 @@ def crop_12_cung_overlap(img, top_cut=0, bottom_cut=3, side_cut=0, overlap_px=15
         cropped_cungs[cung_name] = img.crop((left, top, right, bottom))
     return cropped_cungs
 
-# --- 8. GIAO DIỆN CHÍNH & NẠP DỮ LIỆU ---
+# ==========================================
+# 8. GIAO DIỆN CHÍNH & NẠP DỮ LIỆU
+# ==========================================
 st.markdown('<div class="main-header">☯️ TỬ VI ĐẨU SỐ LUẬN GIẢI TỰ ĐỘNG</div>', unsafe_allow_html=True)
 
 engine_data, engine_err = load_engine_rules()
 books_text, books_err = load_books_reference()
+system_instruction_base = load_system_instruction()
 
-# --- 9. SIDEBAR ĐIỀU HƯỚNG ---
+# ==========================================
+# 9. SIDEBAR ĐIỀU HƯỚNG
+# ==========================================
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/yin-yang.png", width=64)
     st.title("⚙️ Cấu Hình Luận Giải")
@@ -174,16 +225,17 @@ with st.sidebar:
         height=100,
     )
     btn_sidebar_analyze = st.button("🔮 BẮT ĐẦU LUẬN GIẢI", type="primary", key="btn_sidebar", use_container_width=True)
-    
+
     st.markdown("---")
     st.subheader("🔌 Trạng Thái Dữ Liệu")
-    
     if API_KEY:
         st.caption("✅ Gemini API: **Đã kết nối**")
     else:
         st.caption("❌ Gemini API: **Chưa cấu hình KEY**")
 
-    # Kiểm tra trạng thái nạp file
+    if DEFAULT_PROMPT_FILE.exists():
+        st.caption("🎯 System Prompt: **`system_prompts/system_instruction.txt` (Đã nạp)**")
+    
     if engine_data:
         st.caption("📜 Quy tắc chính: **`tu_vi_engine.json` (Đã nạp)**")
     else:
@@ -194,9 +246,12 @@ with st.sidebar:
     else:
         st.caption("⚠️ Kho tham khảo: **Không có (Tùy chọn)**")
 
-# --- 10. PHÂN CHIA TABS ---
-tab_main, tab_rules, tab_books, tab_contact = st.tabs([
+# ==========================================
+# 10. PHÂN CHIA TABS
+# ==========================================
+tab_main, tab_prompt, tab_rules, tab_books, tab_contact = st.tabs([
     "🔮 Luận Giải Lá Số",
+    "🎯 System Prompt (Ép Quy Tắc)",
     "📜 Bộ Quy Tắc Chính (tu_vi_engine.json)",
     "📚 Kho Tham Khảo Phú / Ví Dụ",
     "🔗 Liên Hệ & Hỗ Trợ"
@@ -211,8 +266,8 @@ with tab_main:
     with col_input:
         st.subheader("📸 Upload & Căn Chỉnh Lá Số")
         uploaded_file = st.file_uploader("Tải lên ảnh lá số:", type=["jpg", "jpeg", "png", "webp"])
-        cropped_dict = {}
 
+        cropped_dict = {}
         if uploaded_file:
             if st.session_state.get("last_uploaded") != uploaded_file.name:
                 with st.spinner("🐙 Đang lưu bản sao lá số..."):
@@ -253,19 +308,19 @@ with tab_main:
             elif not engine_data:
                 st.error("❌ Ứng dụng không thể chạy do thiếu file quy tắc `tu_vi_engine.json`!")
             else:
-                with st.spinner("⚡ AI đang nạp tu_vi_engine.json & thực thi luận giải..."):
+                with st.spinner("⚡ AI đang nạp system_prompts & tu_vi_engine.json để thực thi..."):
                     try:
                         client = genai.Client(api_key=API_KEY)
 
-                        # Ép AI sử dụng tu_vi_engine.json làm bộ quy tắc cốt lõi
-                        system_instruction_text = (
-                            "Bạn là Engine Suy Luận Tử Vi Đẩu Số Chuyên Sâu.\n"
-                            "BỘ QUY TẮC BẮT BUỘC THỰC THI CHÍNH (PRIMARY RULE ENGINE):\n"
-                            "Dưới đây là toàn bộ nội dung file `tu_vi_engine.json`. Bạn BẮT BUỘC tuân thủ tuyệt đối các thuật toán, ưu tiên, ma trận sao và cấu trúc xuất báo cáo ở đây:\n\n"
+                        # GHÉP SYSTEM PROMPT NGUYÊN BẢN CÙNG JSON QUY TẮC
+                        full_system_instruction = (
+                            f"{system_instruction_base}\n\n"
+                            "==================================================\n"
+                            "BỘ QUY TẮC BẮT BUỘC THỰC THI CHÍNH (tu_vi_engine.json):\n"
+                            "==================================================\n"
                             f"```json\n{json.dumps(engine_data, ensure_ascii=False, indent=2)[:250000]}\n```"
                         )
 
-                        # Nạp dữ liệu kho sách đính kèm nếu có
                         ref_books_context = ""
                         if books_text:
                             ref_books_context = (
@@ -277,7 +332,7 @@ with tab_main:
                             f"- Năm luận Tiểu Hạn: {selected_year}\n"
                             f"- Yêu cầu thêm từ người dùng: {user_note}\n\n"
                             f"{ref_books_context}\n\n"
-                            "Hãy tiến hành nhận diện 12 cung, lập ma trận sao và xuất báo cáo luận giải chi tiết theo đúng định dạng được quy định trong `tu_vi_engine.json`."
+                            "Hãy tiến hành nhận diện 12 cung, lập ma trận sao và xuất báo cáo luận giải chi tiết theo đúng quy định."
                         )
 
                         content_payload = [image]
@@ -286,51 +341,63 @@ with tab_main:
                             content_payload.append(crop_img)
                         content_payload.append(user_prompt)
 
-                        # Gọi API với cấu hình temperature thấp để tuân thủ quy tắc
+                        # Đặt Temperature siêu thấp (0.1) để ép AI tuân thủ tuyệt đối quy tắc
                         response = client.models.generate_content(
                             model="gemini-3.6-flash",
                             contents=content_payload,
                             config=types.GenerateContentConfig(
-                                system_instruction=system_instruction_text,
-                                temperature=0.15
+                                system_instruction=full_system_instruction,
+                                temperature=0.1
                             )
                         )
 
                         if response and response.text:
                             st.session_state.analysis_result = response.text
-                            st.success("✅ Đã hoàn tất luận giải theo đúng bộ quy tắc `tu_vi_engine.json`!")
-
+                            st.success("✅ Đã hoàn tất luận giải theo đúng quy tắc system_prompts!")
                     except Exception as e:
                         st.error(f"❌ Lỗi xử lý AI Engine: {e}")
 
-        # Hiển thị kết quả ra màn hình
         if st.session_state.analysis_result:
             st.markdown(st.session_state.analysis_result)
         else:
             st.info("👈 Nhấn nút 'BẮT ĐẦU LUẬN GIẢI' để kích hoạt AI xử lý theo quy tắc `tu_vi_engine.json`.")
 
 # ==========================================
-# TAB 2: QUY TẮC CHÍNH
+# TAB 2: CẤU HÌNH SYSTEM PROMPT
+# ==========================================
+with tab_prompt:
+    st.subheader("🎯 Cấu Hình System Prompt (Ép AI Thực Thi)")
+    st.info("Thư mục: `system_prompts/system_instruction.txt`. Bạn có thể chỉnh sửa lệnh ép AI tại đây:")
+    
+    edited_prompt = st.text_area("Nội dung System Instruction:", value=system_instruction_base, height=400)
+    if st.button("💾 Lưu System Prompt", type="primary"):
+        with open(DEFAULT_PROMPT_FILE, "w", encoding="utf-8") as f:
+            f.write(edited_prompt)
+        st.cache_data.clear()
+        st.success("✅ Đã cập nhật thành công file System Prompt!")
+
+# ==========================================
+# TAB 3: QUY TẮC CHÍNH
 # ==========================================
 with tab_rules:
-    st.subheader("📜 Bộ Quy Tắc Cốt Lõi (`tu_vi_engine.json`)")
+    st.subheader("📜 Bộ Quy Tắc Cốt Lõi (`tu_vi_engine.json`)").
     if engine_data:
         st.json(engine_data)
     else:
         st.error(engine_err)
 
 # ==========================================
-# TAB 3: KHO SÁCH THAM KHẢO
+# TAB 4: KHO SÁCH THAM KHẢO
 # ==========================================
 with tab_books:
-    st.subheader("📚 Kho Tham Khảo Phú / Ví Dụ (`books_cache.json`)")
+    st.subheader("📚 Kho Tham Khảo Phú / Ví Dụ (`books_cache.json`)").
     if books_text:
         st.text_area("Dữ liệu sách tham khảo:", value=books_text, height=600)
     else:
         st.warning(books_err)
 
 # ==========================================
-# TAB 4: LIÊN HỆ
+# TAB 5: LIÊN HỆ
 # ==========================================
 with tab_contact:
     st.subheader("🔗 Liên Hệ & Hỗ Trợ Engine")
@@ -338,6 +405,7 @@ with tab_contact:
         """
         - **Ứng dụng:** Hệ Thống Luận Giải Tử Vi Đẩu Số Tự Động.
         - **Mô hình AI:** Google Gemini 2.5 Flash (`google-genai` SDK).
+        - **Quản lý Prompt:** Thư mục `system_prompts/system_instruction.txt`.
         - **Lưu trữ:** GitHub Repository cho ảnh lá số.
         """
     )
