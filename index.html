@@ -4,127 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tử Vi Đẩu Số Engine</title>
+
+    <!-- 1. THÊM THƯ VIỆN ĐỂ KẾT NỐI VỚI STREAMLIT PYTHON -->
+    <script src="https://unpkg.com/streamlit-component-lib@~1.4.0/dist/streamlit.js"></script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body, html { height: 100%; width: 100%; background-color: #0e1117; color: #ffffff; overflow: hidden; }
 
-        /* Nút Bánh Răng */
         .settings-btn {
-            position: fixed;
-            top: 10px;
-            left: 15px;
-            z-index: 9999;
-            background: linear-gradient(135deg, #d4af37, #f6d365);
-            color: #111;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(246, 211, 101, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; top: 10px; left: 15px; z-index: 9999;
+            background: linear-gradient(135deg, #d4af37, #f6d365); color: #111;
+            border: none; width: 40px; height: 40px; border-radius: 50%;
+            font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        /* Thanh Tab Điều Hướng */
         .nav-header {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            background: #161922;
-            border-bottom: 1px solid #262730;
-            height: 55px;
-            padding-right: 20px;
-            gap: 10px;
+            display: flex; align-items: center; justify-content: flex-end;
+            background: #161922; border-bottom: 1px solid #262730; height: 55px; padding-right: 20px; gap: 10px;
         }
 
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: #a0aec0;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: 0.3s;
-        }
+        .tab-btn { background: transparent; border: none; color: #a0aec0; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; }
         .tab-btn.active { color: #f6d365; border-bottom: 3px solid #f6d365; }
 
-        /* Menu Cấu Hình Xổ Từ Trên Xuống */
         .top-menu {
-            position: fixed;
-            top: -100%;
-            left: 0;
-            width: 100vw;
-            max-height: 85vh;
-            background: #161922;
-            border-bottom: 2px solid #f6d365;
-            padding: 20px 30px;
-            z-index: 9998;
-            transition: top 0.35s ease-in-out;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            overflow-y: auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1.2fr;
-            gap: 20px;
+            position: fixed; top: -100%; left: 0; width: 100vw; max-height: 85vh;
+            background: #161922; border-bottom: 2px solid #f6d365; padding: 20px 30px;
+            z-index: 9998; transition: top 0.35s ease-in-out; display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 20px;
         }
         .top-menu.active { top: 0; }
 
         .menu-group { display: flex; flex-direction: column; gap: 8px; background: #1e222d; padding: 15px; border-radius: 8px; border: 1px solid #2d3748; }
         .menu-group label { color: #f6d365; font-weight: bold; font-size: 13px; }
-        .menu-group input, .menu-group textarea {
-            background: #262730; border: 1px solid #363945; color: #fff; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;
-        }
+        .menu-group input, .menu-group textarea { background: #262730; border: 1px solid #363945; color: #fff; padding: 8px 12px; border-radius: 6px; outline: none; }
 
-        .btn-primary {
-            background: linear-gradient(90deg, #d4af37 0%, #f6d365 100%);
-            color: #1a202c;
-            font-weight: bold;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 5px;
-        }
+        .btn-primary { background: linear-gradient(90deg, #d4af37 0%, #f6d365 100%); color: #1a202c; font-weight: bold; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
 
-        /* Khung Nội Dung */
         .content-area { height: calc(100vh - 55px); width: 100vw; padding: 15px; display: none; }
         .content-area.active { display: flex; gap: 15px; }
 
-        .col-card {
-            flex: 1;
-            background: #1e222d;
-            border-radius: 10px;
-            border: 1px solid #262730;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .card-header {
-            padding: 12px 16px;
-            background: #161922;
-            color: #f6d365;
-            font-weight: bold;
-            border-bottom: 1px solid #262730;
-        }
-
+        .col-card { flex: 1; background: #1e222d; border-radius: 10px; border: 1px solid #262730; display: flex; flex-direction: column; overflow: hidden; }
+        .card-header { padding: 12px 16px; background: #161922; color: #f6d365; font-weight: bold; border-bottom: 1px solid #262730; }
         .card-body { padding: 15px; flex: 1; overflow-y: auto; line-height: 1.6; color: #d1d5db; }
-        .metric-card { background: #161922; padding: 15px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 15px; }
-        .metric-value { font-size: 20px; font-weight: bold; color: #f6d365; }
-        .list-books { list-style: none; }
-        .list-books li { padding: 8px 0; border-bottom: 1px solid #262730; color: #cbd5e0; }
     </style>
 </head>
 <body>
 
-    <!-- Nút Bánh Răng -->
     <button class="settings-btn" id="toggleBtn" onclick="toggleMenu()">⚙️</button>
 
-    <!-- Menu Cấu Hình -->
     <div class="top-menu" id="topMenu">
         <div class="menu-group">
             <label>📸 TẢI LÁ SỐ TỬ VI</label>
@@ -136,79 +63,63 @@
         <div class="menu-group">
             <label>📐 CĂN CHỈNH LỀ LÁ SỐ</label>
             <label style="color:#aaa;">⬆️ Bỏ lề Trên (%):</label>
-            <input type="range" min="0" max="25" value="0">
+            <input type="range" id="topVal" min="0" max="25" value="0">
             <label style="color:#aaa;">⬇️ Bỏ lề Dưới (%):</label>
-            <input type="range" min="0" max="25" value="3">
+            <input type="range" id="botVal" min="0" max="25" value="3">
         </div>
 
         <div class="menu-group">
             <label>📝 YÊU CẦU BỔ SUNG</label>
             <textarea id="noteInput" rows="2">Phân tích kỹ Cách Cục và vận hạn năm.</textarea>
-            <button class="btn-primary" onclick="submitAnalysis()">🔮 BẮT ĐẦU LUẬN GIẢI</button>
+            <button class="btn-primary" onclick="submitToPython()">🔮 BẮT ĐẦU LUẬN GIẢI</button>
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="nav-header">
         <button class="tab-btn active" onclick="switchTab('tab-main', this)">☯️ Luận Giải Lá Số</button>
         <button class="tab-btn" onclick="switchTab('tab-books', this)">📚 Kho Dữ Liệu Sách & Phú</button>
         <button class="tab-btn" onclick="switchTab('tab-contact', this)">🔗 Liên Hệ & Hỗ Trợ</button>
     </div>
 
-    <!-- TAB 1: LUẬN GIẢI -->
     <div id="tab-main" class="content-area active">
         <div class="col-card">
             <div class="card-header">💬 TRÒ CHUYỆN & HỎI ĐÁP</div>
             <div class="card-body">
-                <p style="color: #a0aec0;">Mời bạn nhấp vào <b>⚙️ Bánh Răng</b> để tải ảnh lá số và thực hiện luận giải.</p>
+                <p style="color: #a0aec0;">Bấm vào <b>⚙️ Bánh Răng</b> để chọn ảnh và gửi dữ liệu sang Python xử lý.</p>
             </div>
         </div>
         <div class="col-card">
             <div class="card-header">📜 KẾT QUẢ LUẬN GIẢI CHI TIẾT</div>
             <div class="card-body" id="analysisBox">
-                <p style="color: #a0aec0;">Chưa có kết quả luận giải.</p>
+                <!-- ANALYSIS_RESULT -->
             </div>
         </div>
     </div>
 
-    <!-- TAB 2: KHO SÁCH -->
     <div id="tab-books" class="content-area">
         <div class="col-card">
             <div class="card-header">📚 DỮ LIỆU KHO SÁCH JSON CACHE</div>
             <div class="card-body">
-                <div class="metric-card">
-                    <div>Dung Lượng Dữ Liệu:</div>
-                    <div class="metric-value" id="bookSize">/* BOOK_SIZE_DATA */</div>
-                </div>
-                <h4 style="color: #f6d365; margin-bottom: 10px;">📖 Danh Sách Phú Tử Vi:</h4>
-                <ul class="list-books" id="bookList"></ul>
+                <p>Kích thước dữ liệu: <b>/* BOOK_SIZE_DATA */</b></p>
+                <ul id="bookList"></ul>
             </div>
         </div>
     </div>
 
-    <!-- TAB 3: LIÊN HỆ -->
     <div id="tab-contact" class="content-area">
         <div class="col-card">
             <div class="card-header">🔗 THÔNG TIN LIÊN HỆ</div>
-            <div class="card-body">
-                <p>Hỗ trợ kỹ thuật & đóng góp ý kiến dự án Tử Vi Đẩu Số Engine.</p>
-            </div>
+            <div class="card-body"><p>Mọi thắc mắc vui lòng liên hệ hệ thống quản trị.</p></div>
         </div>
     </div>
 
     <script>
-        // Load danh sách sách an toàn
-        const bookData = /* BOOK_TITLES_DATA */ [];
-        const bookListEl = document.getElementById('bookList');
-        if (Array.isArray(bookData) && bookData.length > 0) {
-            bookData.forEach(item => {
-                const li = document.createElement('li');
-                li.innerText = item;
-                bookListEl.appendChild(li);
-            });
-        } else {
-            bookListEl.innerHTML = "<li style='color: #718096;'>Chưa có dữ liệu sách trong cache.</li>";
+        // 2. KHỞI TẠO STREAMLIT COMPONENT
+        function onStreamlitReady() {
+            Streamlit.setComponentReady();
+            Streamlit.setFrameHeight(window.innerHeight);
         }
+        window.addEventListener("DOMContentLoaded", onStreamlitReady);
 
         function switchTab(tabId, btn) {
             document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
@@ -224,14 +135,47 @@
             btn.innerText = menu.classList.contains('active') ? '✖' : '⚙️';
         }
 
-        function submitAnalysis() {
+        // 3. HÀM TRUYỀN DỮ LIỆU TỪ HTML VỀ STREAMLIT PYTHON
+        function submitToPython() {
             const fileInput = document.getElementById('fileInput');
-            if(!fileInput.files[0]) {
-                alert("Vui lòng chọn ảnh lá số!");
+            const year = document.getElementById('yearInput').value;
+            const note = document.getElementById('noteInput').value;
+
+            if (!fileInput.files[0]) {
+                alert("Vui lòng tải lên ảnh lá số!");
                 return;
             }
-            toggleMenu();
-            document.getElementById('analysisBox').innerHTML = "<p style='color:#f6d365;'>⚡ AI đang phân tích dữ liệu lá số...</p>";
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const base64Data = e.target.result; // Chuyển ảnh thành Base64 string
+
+                // GỬI DỮ LIỆU VỀ PYTHON
+                Streamlit.setComponentValue({
+                    action: "ANALYZE",
+                    image: base64Data,
+                    year: year,
+                    note: note
+                });
+                
+                toggleMenu();
+                document.getElementById('analysisBox').innerHTML = "<p style='color:#f6d365;'>⚡ Đang gửi dữ liệu sang Python và gọi Gemini API...</p>";
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Render danh sách sách
+        const bookData = /* BOOK_TITLES_DATA */ [];
+        const bookListEl = document.getElementById('bookList');
+        if (Array.isArray(bookData) && bookData.length > 0) {
+            bookData.forEach(item => {
+                const li = document.createElement('li');
+                li.innerText = item;
+                bookListEl.appendChild(li);
+            });
         }
     </script>
 </body>
