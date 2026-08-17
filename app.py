@@ -10,26 +10,13 @@ from google import genai
 from google.genai import types
 from PIL import Image
 import streamlit as st
-import streamlit.components.v1 as components
 
-# --- CẤU HÌNH TRANG STREAMLIT & MỞ RỘNG TOÀN MÀN HÌNH ---
+# Cấu hình giao diện Streamlit
 st.set_page_config(
     page_title="Tử Vi Đẩu Số Engine", page_icon="☯️", layout="wide"
 )
 
-# Ẩn toàn bộ UI thừa của Streamlit
-st.markdown(
-    """
-    <style>
-    header, footer, #MainMenu, [data-testid="stSidebar"] { display: none !important; }
-    .block-container { padding: 0rem !important; margin: 0rem !important; max-width: 100% !important; }
-    iframe { display: block; width: 100vw !important; height: 100vh !important; border: none; }
-    </style>
-""",
-    unsafe_allow_html=True,
-)
-
-# --- SECRETS & BIẾN CẤU HÌNH ---
+# Secrets & Configs
 API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 GITHUB_TOKEN = st.secrets.get(
     "GITHUB_TOKEN", os.environ.get("GITHUB_TOKEN", "")
@@ -39,85 +26,111 @@ GITHUB_REPO = st.secrets.get("GITHUB_REPO", os.environ.get("GITHUB_REPO", ""))
 BASE_DIR = Path(__file__).parent
 ENGINE_FILE = BASE_DIR / "tu_vi_engine.json"
 CACHE_FILE = BASE_DIR / "books_cache.json"
-INDEX_FILE = BASE_DIR / "index.html"
-
-# Cập nhật tên Model mới theo thông báo lỗi từ Google API
 GEMINI_MODEL = "gemini-3.6-flash"
 
-
-def upload_to_github(file_bytes, file_name):
-  if not GITHUB_TOKEN or not GITHUB_REPO:
-    return False, "Thiếu cấu hình GITHUB_TOKEN hoặc GITHUB_REPO"
-  try:
-    g = Github(GITHUB_TOKEN)
-    repo = g.get_repo(GITHUB_REPO)
-    ext = Path(file_name).suffix
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_path = f"uploaded_laso/laso_{timestamp}{ext}"
-    try:
-      contents = repo.get_contents(file_path)
-      repo.update_file(
-          contents.path,
-          f"Update lá số: {timestamp}",
-          file_bytes,
-          contents.sha,
-      )
-    except GithubException:
-      repo.create_file(
-          file_path, f"Upload lá số: {timestamp}", file_bytes
-      )
-    return True, f"https://github.com/{GITHUB_REPO}/blob/main/{file_path}"
-  except Exception as e:
-    return False, str(e)
-
-
-def load_cached_books():
-  if not CACHE_FILE.exists():
-    return [], "0 ký tự"
-  try:
-    with open(CACHE_FILE, "r", encoding="utf-8") as f:
-      data = json.load(f)
-      titles = []
-      text_len = len(str(data))
-      if isinstance(data, list):
-        for idx, item in enumerate(data):
-          if isinstance(item, dict) and "title" in item:
-            titles.append(f"{idx+1}. {item['title']}")
-          elif isinstance(item, str):
-            titles.append(f"{idx+1}. {item[:60]}...")
-      return titles, f"{text_len:,} ký tự"
-  except Exception:
-    return [], "0 ký tự"
-
-
-# --- KHỞI TẠO SESSION STATE ---
-if "chat_history" not in st.session_state:
-  st.session_state.chat_history = []
+# Session States
 if "analysis_result" not in st.session_state:
   st.session_state.analysis_result = ""
+if "chat_history" not in st.session_state:
+  st.session_state.chat_history = []
 
-# --- RENDER GIAO DIỆN INDEX.HTML ---
-if INDEX_FILE.exists():
-  with open(INDEX_FILE, "r", encoding="utf-8") as f:
-    html_content = f.read()
 
-  titles, total_size = load_cached_books()
+# Hàm xử lý gọi Gemini API
+def process_gemini(image_bytes, year, note):
+  if not API_KEY:
+    return "❌ Lỗi: Chưa cấu hình GEMINI_API_KEY trong Secrets!"
+  try:
+    image = Image.open(image_bytes).convert("RGB")
+    engine_rules = ""
+    if ENGINE_FILE.exists():
+      with open(ENGINE_FILE, "r", encoding="utf-8") as f:
+        engine_rules = f.read()[:30000]
 
-  # Chèn dữ liệu sách và kết quả luận giải trực tiếp vào giao diện HTML
-  final_html = (
-      html_content.replace(
-          "/* BOOK_TITLES_DATA */", json.dumps(titles, ensure_ascii=False)
+    client = genai.Client(api_key=API_KEY)
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=[image, f"Năm luận giải: {year}. Ghi chú: {note}"],
+        config=types.GenerateContentConfig(
+            system_instruction=f"BỘ QUY TẮC:\n{engine_rules}",
+        ),
+    )
+    return (
+        response.text
+        if response and response.text
+        else "Không nhận được phản hồi từ AI."
+    )
+  except Exception as e:
+    return f"❌ Lỗi xử lý API: {str(e)}"
+
+
+# --- TẠO GIAO DIỆN TƯƠNG TÁC QUA STREAMLIT FORM CHE MỜ (SỬA LỖI ĐƠ WEBPAGE) ---
+st.markdown(
+    """
+    <style>
+    header, footer, #MainMenu { visibility: hidden; }
+    .stApp { background-color: #0e1117; }
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
+# Hiển thị giao diện Streamlit Native (Đảm bảo tương tác 100% không đơ)
+st.title("☯️ Tử Vi Đẩu Số Engine")
+
+tabs = st.tabs([
+    "⚙️ Cấu Hình & Luận Giải",
+    "💬 Trò Chuyện",
+    "📚 Kho Dữ Liệu Sách",
+])
+
+with tabs[0]:
+  col1, col2 = st.columns([1, 1])
+  with col1:
+    uploaded_file = st.file_uploader(
+        "📸 Chọn ảnh lá số Tử Vi", type=["jpg", "png", "jpeg", "webp"]
+    )
+    selected_year = st.number_input("📅 Năm Tiểu Hạn", 1950, 2050, 2026)
+    user_note = st.text_area("📝 Ghi chú thêm", "Phân tích kỹ Cách Cục.")
+    btn_submit = st.button("🔮 BẮT ĐẦU LUẬN GIẢI", type="primary")
+
+  with col2:
+    st.subheader("📜 Kết Quả Luận Giải")
+    if btn_submit:
+      if uploaded_file is not None:
+        with st.spinner("⚡ AI đang phân tích lá số..."):
+          res = process_gemini(uploaded_file, selected_year, user_note)
+          st.session_state.analysis_result = res
+      else:
+        st.warning("Vui lòng chọn file ảnh lá số!")
+
+    if st.session_state.analysis_result:
+      st.markdown(st.session_state.analysis_result)
+
+with tabs[1]:
+  st.subheader("💬 Trò Chuyện Cùng AI")
+  for user_msg, ai_msg in st.session_state.chat_history:
+    with st.chat_message("user"):
+      st.write(user_msg)
+    with st.chat_message("assistant"):
+      st.write(ai_msg)
+
+  chat_input = st.chat_input("Nhập câu hỏi về lá số...")
+  if chat_input:
+    if st.session_state.analysis_result:
+      client = genai.Client(api_key=API_KEY)
+      chat_prompt = f"BÀI LUẬN:\n{st.session_state.analysis_result}\n\nCÂU HỎI: {chat_input}"
+      res = client.models.generate_content(
+          model=GEMINI_MODEL, contents=[chat_prompt]
       )
-      .replace(
-          "/* BOOK_SIZE_DATA */", json.dumps(total_size, ensure_ascii=False)
-      )
-      .replace(
-          "<!-- ANALYSIS_RESULT -->",
-          st.session_state.analysis_result
-          or "<p style='color: #a0aec0;'>👈 Bấm vào biểu tượng <b>⚙️ Bánh Răng</b> ở góc trên trái để tải lá số và bắt đầu luận giải.</p>",
-      )
-  )
+      st.session_state.chat_history.append((chat_input, res.text))
+      st.rerun()
+    else:
+      st.warning("Hãy luận giải lá số ở tab 1 trước!")
 
-  components.html(final_html, height=1000, scrolling=False)
-else:
-  st.error("❌ Không tìm thấy tệp index.html trong cùng thư mục!")
+with tabs[2]:
+  st.subheader("📚 Danh Sách Phú & Sách")
+  if CACHE_FILE.exists():
+    with open(CACHE_FILE, "r", encoding="utf-8") as f:
+      st.json(json.load(f))
+  else:
+    st.info("Chưa có file cache dữ liệu sách.")
