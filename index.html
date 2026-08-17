@@ -7,27 +7,67 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body, html { height: 100%; width: 100%; background-color: #0e1117; color: #ffffff; overflow: hidden; }
-        
-        .main-layout {
+
+        /* Nút bánh răng cấu hình */
+        .settings-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 9999;
+            background: #f6d365;
+            color: #111;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Menu Cấu Hình Xổ Từ Trên Xống (Top Overlay) */
+        .top-menu {
+            position: fixed;
+            top: -100%;
+            left: 0;
+            width: 100vw;
+            background: #161922;
+            border-bottom: 2px solid #f6d365;
+            padding: 20px;
+            z-index: 9998;
+            transition: top 0.4s ease-in-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: flex;
+            gap: 20px;
+        }
+
+        .top-menu.active { top: 0; }
+
+        .menu-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .menu-col label { color: #f6d365; font-weight: bold; font-size: 14px; }
+        .menu-col input, .menu-col select {
+            background: #262730; border: 1px solid #363945; color: #fff; padding: 8px 12px; border-radius: 6px; outline: none;
+        }
+
+        .btn-submit {
+            background: #f6d365; color: #111; font-weight: bold; border: none; padding: 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-submit:hover { background: #fda085; }
+
+        /* Khung chính 2 cột */
+        .main-container {
             display: flex;
             width: 100vw;
             height: 100vh;
-            gap: 12px;
-            padding: 12px;
+            padding: 70px 15px 15px 15px;
+            gap: 15px;
         }
 
-        .col-left {
+        .col-card {
             flex: 1;
-            background: #1e222d;
-            border-radius: 10px;
-            border: 1px solid #262730;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .col-right {
-            flex: 1.4;
             background: #1e222d;
             border-radius: 10px;
             border: 1px solid #262730;
@@ -40,48 +80,106 @@
             padding: 12px 16px;
             background: #161922;
             color: #f6d365;
-            font-size: 16px;
-            font-weight: 700;
+            font-weight: bold;
             border-bottom: 1px solid #262730;
         }
 
         .card-body {
-            padding: 16px;
+            padding: 15px;
             flex: 1;
             overflow-y: auto;
             line-height: 1.6;
             color: #d1d5db;
         }
 
-        .card-body::-webkit-scrollbar { width: 6px; }
-        .card-body::-webkit-scrollbar-thumb { background-color: #363945; border-radius: 4px; }
-        .card-body::-webkit-scrollbar-thumb:hover { background-color: #f6d365; }
-
-        .chat-bubble {
-            margin-bottom: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 14px;
+        /* Khung Chatbot */
+        .chat-input-box {
+            padding: 10px;
+            background: #161922;
+            border-top: 1px solid #262730;
+            display: flex;
+            gap: 8px;
         }
-        .chat-user { background: #2d3748; color: #f6d365; }
+        .chat-input-box input {
+            flex: 1; background: #262730; border: 1px solid #363945; color: #fff; padding: 8px 12px; border-radius: 6px; outline: none;
+        }
+
+        .chat-bubble { margin-bottom: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+        .chat-user { background: #2d3748; color: #f6d365; align-self: flex-end; }
         .chat-ai { background: #1a202c; border: 1px solid #363945; color: #e2e8f0; }
     </style>
 </head>
 <body>
-    <div class="main-layout">
-        <div class="col-left">
+
+    <!-- Nút Bánh Răng -->
+    <button class="settings-btn" id="toggleBtn" onclick="toggleMenu()">⚙️</button>
+
+    <!-- Menu Cấu Hình -->
+    <div class="top-menu" id="topMenu">
+        <div class="menu-col">
+            <label>📸 Tải Lá Số Tử Vi:</label>
+            <input type="file" id="fileInput" accept="image/*">
+            <label>📅 Năm Luận Tiểu Hạn:</label>
+            <input type="number" id="yearInput" value="2026">
+            <button class="btn-submit" onclick="submitAnalysis()">🔮 BẮT ĐẦU LUẬN GIẢI</button>
+        </div>
+        <div class="menu-col">
+            <label>📝 Yêu Cầu Bổ Sung:</label>
+            <input type="text" id="noteInput" placeholder="Ví dụ: Phân tích kỹ Cung Mệnh, Thân...">
+        </div>
+    </div>
+
+    <!-- Giao Diện 2 Cột -->
+    <div class="main-container">
+        <!-- Cột Trái: Chatbot -->
+        <div class="col-card">
             <div class="card-header">💬 TRÒ CHUYỆN & HỎI ĐÁP LÁ SỐ</div>
-            <div class="card-body">
-                <!-- CHAT_HISTORY_PLACEHOLDER -->
+            <div class="card-body" id="chatBox">
+                <div class="chat-bubble chat-ai">👋 Hãy tải lá số ở <b>⚙️ Bánh Răng</b> và bấm Luận Giải để bắt đầu trò chuyện!</div>
+            </div>
+            <div class="chat-input-box">
+                <input type="text" id="chatInput" placeholder="Nhập câu hỏi...">
+                <button class="btn-submit" onclick="sendChat()">Gửi</button>
             </div>
         </div>
 
-        <div class="col-right">
-            <div class="card-header">📜 BÀI LUẬN GIẢI TỰ ĐỘNG (GEMINI)</div>
-            <div class="card-body">
-                <!-- ANALYSIS_RESULT_PLACEHOLDER -->
+        <!-- Cột Phải: Bài Luận -->
+        <div class="col-card">
+            <div class="card-header">📜 BÀI LUẬN GIẢI TỰ ĐỘNG</div>
+            <div class="card-body" id="analysisBox">
+                <p style="color: #a0aec0;">👈 Chưa có dữ liệu luận giải. Hãy mở menu bánh răng để bắt đầu.</p>
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('topMenu');
+            const btn = document.getElementById('toggleBtn');
+            menu.classList.toggle('active');
+            btn.innerText = menu.classList.contains('active') ? '✖' : '⚙️';
+        }
+
+        function submitAnalysis() {
+            const fileInput = document.getElementById('fileInput');
+            if(!fileInput.files[0]) {
+                alert("Vui lòng chọn ảnh lá số!");
+                return;
+            }
+            document.getElementById('analysisBox').innerHTML = "<p style='color: #f6d365;'>⚡ AI đang lập bài luận giải, vui lòng đợi...</p>";
+            toggleMenu();
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML += `<div class="chat-bubble chat-user"><b>User:</b> ${text}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
 </body>
 </html>
