@@ -8,13 +8,13 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body, html { height: 100%; width: 100%; background-color: #0e1117; color: #ffffff; overflow: hidden; }
 
-        /* Nút bánh răng cấu hình */
+        /* Nút bánh răng cài đặt */
         .settings-btn {
             position: fixed;
-            top: 15px;
+            top: 12px;
             left: 15px;
             z-index: 9999;
-            background: #f6d365;
+            background: linear-gradient(135deg, #d4af37, #f6d365);
             color: #111;
             border: none;
             width: 42px;
@@ -22,49 +22,84 @@
             border-radius: 50%;
             font-size: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(246, 211, 101, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .settings-btn:hover { transform: scale(1.08); }
+
+        /* Navigation Header Tabs */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #161922;
+            border-bottom: 1px solid #262730;
+            height: 60px;
+            padding-left: 70px;
+            gap: 15px;
         }
 
-        /* Menu Cấu Hình Xổ Từ Trên Xống (Top Overlay) */
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #a0aec0;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: 0.3s;
+        }
+        .tab-btn.active { color: #f6d365; border-bottom: 3px solid #f6d365; }
+
+        /* Top Menu Overlay (Hiện khi bấm Bánh Răng) */
         .top-menu {
             position: fixed;
             top: -100%;
             left: 0;
             width: 100vw;
+            max-height: 85vh;
             background: #161922;
             border-bottom: 2px solid #f6d365;
-            padding: 20px;
+            padding: 25px 30px;
             z-index: 9998;
             transition: top 0.4s ease-in-out;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: flex;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 20px;
         }
-
         .top-menu.active { top: 0; }
 
-        .menu-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .menu-col label { color: #f6d365; font-weight: bold; font-size: 14px; }
-        .menu-col input, .menu-col select {
-            background: #262730; border: 1px solid #363945; color: #fff; padding: 8px 12px; border-radius: 6px; outline: none;
+        .menu-group { display: flex; flex-direction: column; gap: 10px; background: #1e222d; padding: 15px; border-radius: 8px; border: 1px solid #2d3748; }
+        .menu-group label { color: #f6d365; font-weight: bold; font-size: 13px; }
+        .menu-group input, .menu-group textarea {
+            background: #262730; border: 1px solid #363945; color: #fff; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;
         }
 
-        .btn-submit {
-            background: #f6d365; color: #111; font-weight: bold; border: none; padding: 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;
-        }
-        .btn-submit:hover { background: #fda085; }
+        .slider-box { display: flex; flex-direction: column; gap: 5px; }
+        .slider-box span { font-size: 12px; color: #cbd5e0; }
 
-        /* Khung chính 2 cột */
-        .main-container {
-            display: flex;
-            width: 100vw;
-            height: 100vh;
-            padding: 70px 15px 15px 15px;
-            gap: 15px;
+        .btn-primary {
+            background: linear-gradient(90deg, #d4af37 0%, #f6d365 100%);
+            color: #1a202c;
+            font-weight: bold;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
         }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(246, 211, 101, 0.4); }
+
+        /* Layout Nội Dung */
+        .content-area { height: calc(100vh - 60px); width: 100vw; padding: 15px; display: none; }
+        .content-area.active { display: flex; gap: 15px; }
 
         .col-card {
             flex: 1;
@@ -82,77 +117,165 @@
             color: #f6d365;
             font-weight: bold;
             border-bottom: 1px solid #262730;
-        }
-
-        .card-body {
-            padding: 15px;
-            flex: 1;
-            overflow-y: auto;
-            line-height: 1.6;
-            color: #d1d5db;
-        }
-
-        /* Khung Chatbot */
-        .chat-input-box {
-            padding: 10px;
-            background: #161922;
-            border-top: 1px solid #262730;
             display: flex;
-            gap: 8px;
-        }
-        .chat-input-box input {
-            flex: 1; background: #262730; border: 1px solid #363945; color: #fff; padding: 8px 12px; border-radius: 6px; outline: none;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .chat-bubble { margin-bottom: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
-        .chat-user { background: #2d3748; color: #f6d365; align-self: flex-end; }
+        .card-body { padding: 15px; flex: 1; overflow-y: auto; line-height: 1.6; color: #d1d5db; }
+
+        /* Chat Frame */
+        .chat-input-box { padding: 12px; background: #161922; border-top: 1px solid #262730; display: flex; gap: 8px; }
+        .chat-input-box input { flex: 1; background: #262730; border: 1px solid #363945; color: #fff; padding: 10px 12px; border-radius: 6px; outline: none; }
+
+        .chat-bubble { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; max-width: 90%; }
+        .chat-user { background: #2d3748; color: #f6d365; align-self: flex-end; margin-left: auto; }
         .chat-ai { background: #1a202c; border: 1px solid #363945; color: #e2e8f0; }
+
+        /* Book Info & Links */
+        .metric-card { background: #161922; padding: 20px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 15px; }
+        .metric-title { font-size: 13px; color: #a0aec0; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #f6d365; margin-top: 5px; }
+        .list-books { list-style: none; padding-left: 0; }
+        .list-books li { padding: 8px 0; border-bottom: 1px solid #262730; color: #cbd5e0; }
+
+        .link-box { display: flex; gap: 20px; margin-top: 20px; }
+        .link-card { flex: 1; background: #161922; padding: 20px; border-radius: 8px; border: 1px solid #2d3748; text-decoration: none; color: #fff; }
+        .link-card:hover { border-color: #f6d365; }
+        .link-card h4 { color: #f6d365; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
-    <!-- Nút Bánh Răng -->
+    <!-- Nút Bánh Răng Toggle Cấu Hình -->
     <button class="settings-btn" id="toggleBtn" onclick="toggleMenu()">⚙️</button>
 
-    <!-- Menu Cấu Hình -->
+    <!-- Top Menu Cấu Hình Xổ Từ Trên Xuống -->
     <div class="top-menu" id="topMenu">
-        <div class="menu-col">
-            <label>📸 Tải Lá Số Tử Vi:</label>
+        <div class="menu-group">
+            <label>📸 TẢI LÁ SỐ TỬ VI</label>
             <input type="file" id="fileInput" accept="image/*">
-            <label>📅 Năm Luận Tiểu Hạn:</label>
-            <input type="number" id="yearInput" value="2026">
-            <button class="btn-submit" onclick="submitAnalysis()">🔮 BẮT ĐẦU LUẬN GIẢI</button>
+            <label>📅 NĂM LUẬN TIỂU HẠN</label>
+            <input type="number" id="yearInput" value="2026" min="1950" max="2050">
         </div>
-        <div class="menu-col">
-            <label>📝 Yêu Cầu Bổ Sung:</label>
-            <input type="text" id="noteInput" placeholder="Ví dụ: Phân tích kỹ Cung Mệnh, Thân...">
+
+        <div class="menu-group">
+            <label>📐 CĂN CHỈNH LỀ & PHỦ VẠCH TUẦN/TRIỆT</label>
+            <div class="slider-box">
+                <span>⬆️ Bỏ lề TRÊN (%): <b id="topVal">0</b>%</span>
+                <input type="range" min="0" max="25" value="0" oninput="document.getElementById('topVal').innerText = this.value">
+            </div>
+            <div class="slider-box">
+                <span>⬇️ Bỏ lề DƯỚI (%): <b id="botVal">3</b>%</span>
+                <input type="range" min="0" max="25" value="3" oninput="document.getElementById('botVal').innerText = this.value">
+            </div>
+            <div class="slider-box">
+                <span>🔍 Vùng phủ vạch ngăn (Px): <b id="overVal">15</b>px</span>
+                <input type="range" min="5" max="40" value="15" oninput="document.getElementById('overVal').innerText = this.value">
+            </div>
+        </div>
+
+        <div class="menu-group">
+            <label>📝 YÊU CẦU / GHI CHÚ BỔ SUNG</label>
+            <textarea id="noteInput" rows="3">Phân tích kỹ Cách Cục (Thành cách/Pha cách), Tam Hợp chiếu và vận hạn năm.</textarea>
+            <button class="btn-primary" onclick="submitAnalysis()">🔮 BẮT ĐẦU LUẬN GIẢI</button>
         </div>
     </div>
 
-    <!-- Giao Diện 2 Cột -->
-    <div class="main-container">
-        <!-- Cột Trái: Chatbot -->
+    <!-- Thanh Tabs Điều Hướng -->
+    <div class="nav-header">
+        <button class="tab-btn active" onclick="switchTab('tab-main', this)">☯️ Luận Giải Lá Số</button>
+        <button class="tab-btn" onclick="switchTab('tab-books', this)">📚 Kho Dữ Liệu Sách & Phú</button>
+        <button class="tab-btn" onclick="switchTab('tab-contact', this)">🔗 Liên Hệ & Hỗ Trợ</button>
+    </div>
+
+    <!-- TAB 1: LUẬN GIẢI & CHATBOT -->
+    <div id="tab-main" class="content-area active">
+        <!-- Cột Trái: Trò chuyện Chatbot -->
         <div class="col-card">
-            <div class="card-header">💬 TRÒ CHUYỆN & HỎI ĐÁP LÁ SỐ</div>
+            <div class="card-header">
+                <span>💬 TRÒ CHUYỆN & HỎI ĐÁP BỔ SUNG</span>
+            </div>
             <div class="card-body" id="chatBox">
-                <div class="chat-bubble chat-ai">👋 Hãy tải lá số ở <b>⚙️ Bánh Răng</b> và bấm Luận Giải để bắt đầu trò chuyện!</div>
+                <div class="chat-bubble chat-ai">👋 Mời bạn tải lá số ở <b>⚙️ Bánh Răng</b> và bấm Luận Giải để bắt đầu hỏi đáp Tử Vi!</div>
             </div>
             <div class="chat-input-box">
-                <input type="text" id="chatInput" placeholder="Nhập câu hỏi...">
-                <button class="btn-submit" onclick="sendChat()">Gửi</button>
+                <input type="text" id="chatInput" placeholder="Nhập câu hỏi Tử Vi..." onkeypress="if(event.key==='Enter') sendChat()">
+                <button class="btn-primary" style="margin-top:0; padding:8px 16px;" onclick="sendChat()">Gửi</button>
             </div>
         </div>
 
-        <!-- Cột Phải: Bài Luận -->
+        <!-- Cột Phải: Bài Luận Tự Động -->
         <div class="col-card">
-            <div class="card-header">📜 BÀI LUẬN GIẢI TỰ ĐỘNG</div>
+            <div class="card-header">
+                <span>📜 BÀI LUẬN GIẢI CHI TIẾT</span>
+            </div>
             <div class="card-body" id="analysisBox">
-                <p style="color: #a0aec0;">👈 Chưa có dữ liệu luận giải. Hãy mở menu bánh răng để bắt đầu.</p>
+                <p style="color: #a0aec0;">👈 Nhấp vào biểu tượng <b>⚙️ Bánh Răng</b> ở góc trên trái để tải lá số và tạo luận giải.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: KHO SÁCH & PHÚ -->
+    <div id="tab-books" class="content-area">
+        <div class="col-card">
+            <div class="card-header"><span>📚 DỮ LIỆU KHO SÁCH JSON CACHE</span></div>
+            <div class="card-body">
+                <div style="display: flex; gap: 20px;">
+                    <div class="metric-card" style="flex: 1;">
+                        <div class="metric-title">Tổng Dung Lượng Ký Tự Kho Sách</div>
+                        <div class="metric-value" id="bookSize">/* BOOK_SIZE_DATA */</div>
+                    </div>
+                </div>
+                <h3 style="color: #f6d365; margin: 15px 0;">📖 Danh Sách Tài Liệu / Phú Tử Vi:</h3>
+                <ul class="list-books" id="bookList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: LIÊN HỆ & HỖ TRỢ -->
+    <div id="tab-contact" class="content-area">
+        <div class="col-card">
+            <div class="card-header"><span>🔗 KÊNH KẾT NỐI & HỖ TRỢ KỸ THUẬT</span></div>
+            <div class="card-body">
+                <p>Mọi thắc mắc, đóng góp ý kiến hoặc báo lỗi ứng dụng xin vui lòng liên hệ:</p>
+                <div class="link-box">
+                    <a href="https://github.com" target="_blank" class="link-card">
+                        <h4>🐙 GitHub Repository</h4>
+                        <p>Xem mã nguồn, đóng góp tính năng hoặc báo lỗi dự án.</p>
+                    </a>
+                    <a href="https://t.me" target="_blank" class="link-card">
+                        <h4>💬 Telegram Community</h4>
+                        <p>Tham gia cộng đồng trao đổi và hỗ trợ giải đáp Tử Vi.</p>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Khởi tạo dữ liệu Sách từ Streamlit truyền sang
+        const bookData = /* BOOK_TITLES_DATA */ [];
+        const bookListEl = document.getElementById('bookList');
+        if (Array.isArray(bookData) && bookData.length > 0) {
+            bookData.forEach(item => {
+                const li = document.createElement('li');
+                li.innerText = "• " + item;
+                bookListEl.appendChild(li);
+            });
+        } else {
+            bookListEl.innerHTML = "<li>Chưa có danh sách tài liệu chi tiết.</li>";
+        }
+
+        // Chuyển đổi Tab
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Đóng/Mở Bánh Răng Overlay Menu
         function toggleMenu() {
             const menu = document.getElementById('topMenu');
             const btn = document.getElementById('toggleBtn');
@@ -160,16 +283,18 @@
             btn.innerText = menu.classList.contains('active') ? '✖' : '⚙️';
         }
 
+        // Gửi lệnh Luận Giải
         function submitAnalysis() {
             const fileInput = document.getElementById('fileInput');
             if(!fileInput.files[0]) {
-                alert("Vui lòng chọn ảnh lá số!");
+                alert("Vui lòng tải lên ảnh lá số!");
                 return;
             }
-            document.getElementById('analysisBox').innerHTML = "<p style='color: #f6d365;'>⚡ AI đang lập bài luận giải, vui lòng đợi...</p>";
             toggleMenu();
+            document.getElementById('analysisBox').innerHTML = "<p style='color: #f6d365;'>⚡ AI đang cắt lá số và lập bài luận giải, vui lòng đợi trong giây lát...</p>";
         }
 
+        // Gửi Chatbot
         function sendChat() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
