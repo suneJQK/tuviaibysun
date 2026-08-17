@@ -11,7 +11,7 @@ from PIL import Image
 import streamlit as st
 import streamlit.components.v1 as components
 
-# --- 1. CẤU HÌNH TRANG ---
+# --- 1. CẤU HÌNH TRANG STREAMLIT ---
 st.set_page_config(
     page_title="Tử Vi Đẩu Số Engine",
     page_icon="☯️",
@@ -19,14 +19,14 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- 2. CSS HIỆN NÚT SIDEBAR ---
+# --- 2. CSS HIỆN NÚT TOGGLE SIDEBAR VÀ ÉP FRAME ---
 st.markdown(
     """
     <style>
     footer { visibility: hidden; }
     #MainMenu { visibility: hidden; }
     
-    /* Hiện lại nút mở/đóng Sidebar */
+    /* Ép hiện nút mở/đóng Sidebar ở góc trên trái */
     [data-testid="stSidebarCollapseButton"],
     [data-testid="collapsedControl"] {
         display: flex !important;
@@ -43,7 +43,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- 3. DỮ LIỆU & SECRETS ---
+# --- 3. SECRETS & THƯ MỤC CẤU HÌNH ---
 API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 GITHUB_TOKEN = st.secrets.get(
     "GITHUB_TOKEN", os.environ.get("GITHUB_TOKEN", "")
@@ -81,11 +81,11 @@ if (
     or st.session_state.analysis_result is None
 ):
   st.session_state.analysis_result = (
-      "<p style='color:#a0aec0;'>👈 Bấm vào mũi tên <b>&gt;</b> ở góc trên trái"
-      " để mở thanh điều khiển, tải lá số và tạo bài luận.</p>"
+      "<p style='color:#a0aec0;'>👈 Mở thanh điều khiển bên trái, tải lá số và"
+      " bấm Bắt Đầu Luận Giải.</p>"
   )
 
-# --- 5. SIDEBAR ĐIỀU KHIỂN BÊN TRÁI ---
+# --- 5. SIDEBAR ĐIỀU KHIỂN & KHUNG CHAT ---
 with st.sidebar:
   st.title("⚙️ Điều Khiển Engine")
   uploaded_file = st.file_uploader(
@@ -99,7 +99,7 @@ with st.sidebar:
     elif not API_KEY:
       st.error("❌ Chưa cấu hình GEMINI_API_KEY!")
     else:
-      with st.spinner("⚡ AI đang phân tích..."):
+      with st.spinner("⚡ AI (Gemini 3.6) đang phân tích..."):
         upload_to_github(uploaded_file)
         image = Image.open(uploaded_file).convert("RGB")
 
@@ -111,7 +111,7 @@ with st.sidebar:
         try:
           client = genai.Client(api_key=API_KEY)
           response = client.models.generate_content(
-              model="gemini-2.5-flash",
+              model="gemini-3.6",
               contents=[
                   image,
                   (
@@ -132,17 +132,18 @@ with st.sidebar:
             st.session_state.chat_history = []
             st.rerun()
         except Exception as e:
-          st.error(f"❌ Lỗi API: {e}")
+          st.error(f"❌ Lỗi API Gemini 3.6: {e}")
 
   st.markdown("---")
-  chat_input = st.text_input("💬 Nhập câu hỏi chat:")
+  st.subheader("💬 Trò Chuyện Bổ Sung")
+  chat_input = st.text_input("Nhập câu hỏi:")
   if st.button("Gửi câu hỏi", use_container_width=True):
     if chat_input and API_KEY:
       try:
         client = genai.Client(api_key=API_KEY)
         prompt = f"BÀI LUẬN:\n{st.session_state.analysis_result}\n\nCÂU HỎI: {chat_input}"
         chat_res = client.models.generate_content(
-            model="gemini-3.6-flash", contents=[prompt]
+            model="gemini-3.6", contents=[prompt]
         )
         if chat_res and chat_res.text:
           st.session_state.chat_history.append(("User", chat_input))
@@ -151,7 +152,7 @@ with st.sidebar:
       except Exception as e:
         st.error(f"❌ Lỗi gửi chat: {e}")
 
-# --- 6. RENDER FILE INDEX.HTML ---
+# --- 6. RENDER DỮ LIỆU SANG FILE INDEX.HTML ---
 if INDEX_FILE.exists():
   with open(INDEX_FILE, "r", encoding="utf-8") as f:
     html_content = f.read()
@@ -169,4 +170,4 @@ if INDEX_FILE.exists():
 
   components.html(final_html, height=1000, scrolling=True)
 else:
-  st.error("❌ Không tìm thấy file index.html!")
+  st.error("❌ Không tìm thấy tệp index.html trong cùng thư mục!")
