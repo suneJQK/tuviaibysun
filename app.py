@@ -18,19 +18,28 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- 2. CSS TỐI ƯU CUỘN ĐỘC LẬP (LEFT FIXED, RIGHT SCROLL) ---
+# --- 2. CSS TỐI ƯU GIAO DIỆN & GIỮ NÚT SIDEBAR ---
 st.markdown(
     """
     <style>
-    /* Ẩn Toolbar, Header và Footer thừa */
-    div[data-testid="stToolbar"] { visibility: hidden; }
+    /* Chỉ ẩn Footer và Header mặc định, GIỮ LẠI Sidebar Toggle Button */
     footer { visibility: hidden; }
-    header { visibility: hidden; }
     .stApp { background-color: #0e1117; }
 
-    /* Khóa cuộn của trang chính để tạo hiệu ứng ứng dụng desktop */
+    /* Hiển thị cưỡng chế nút đóng/mở Sidebar */
+    button[data-testid="stSidebarCollapseButton"],
+    button[data-testid="baseButton-header"],
+    div[data-testid="stSidebarNav"] button,
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
+    }
+
+    /* Khóa cuộn trang chính để chia 2 cột cuộn độc lập */
     .main .block-container {
-        padding-top: 1.5rem !important;
+        padding-top: 2rem !important;
         padding-bottom: 0rem !important;
         max-width: 98% !important;
     }
@@ -201,7 +210,7 @@ if "chat_history" not in st.session_state:
 if "analysis_result" not in st.session_state:
   st.session_state.analysis_result = None
 
-# --- 5. SIDEBAR ---
+# --- 5. SIDEBAR (CÀI ĐẶT BÊN TRÁI) ---
 with st.sidebar:
   st.image("https://img.icons8.com/color/96/yin-yang.png", width=64)
   st.title("⚙️ Cấu Hình Luận Giải")
@@ -232,7 +241,7 @@ tab_main, tab_rules, tab_books, tab_contact = st.tabs([
 with tab_main:
   col_input, col_output = st.columns([1, 1.3], gap="medium")
 
-  # CỘT TRÁI: CỐ ĐỊNH VỚI MÀN HÌNH (TỰ CÓ THANH CUỘN BÊN TRÁI NẾU MÀN HÌNH NHỎ)
+  # CỘT TRÁI: CỐ ĐỊNH, CHỨA UPLOAD & CHAT
   with col_input:
     st.subheader("📸 Upload & Căn Chỉnh Lá Số")
     uploaded_file = st.file_uploader(
@@ -290,12 +299,10 @@ with tab_main:
       if not st.session_state.analysis_result:
         st.warning("⚠️ Hãy thực hiện Luận Giải Lá Số trước khi bắt đầu chat!")
       else:
-        # Lưu câu hỏi người dùng
         st.session_state.chat_history.append(
             {"role": "user", "content": chat_input_text}
         )
 
-        # AI Phản hồi
         try:
           client = genai.Client(api_key=API_KEY)
 
@@ -314,8 +321,9 @@ with tab_main:
 
           full_prompt = f"{history_context}\nUser: {chat_input_text}\nAI:"
 
+          # CẬP NHẬT TÊN MODEL SANG GEMINI-3.6-FLASH
           chat_response = client.models.generate_content(
-              model="gemini-2.5-flash",
+              model="gemini-3.6-flash",
               contents=[full_prompt],
               config=types.GenerateContentConfig(
                   system_instruction=chat_system_instruction,
@@ -331,11 +339,10 @@ with tab_main:
         except Exception as e:
           st.error(f"Lỗi phản hồi: {e}")
 
-  # CỘT PHẢI: TRƯỢT/CUỘN ĐỘC LẬP
+  # CỘT PHẢI: KẾT QUẢ VĂN BẢN (CUỘN ĐỘC LẬP)
   with col_output:
     st.subheader("📜 Kết Quả Luận Giải Tự Động")
 
-    # Kích hoạt AI Luận Giải
     if btn_sidebar_analyze or btn_main_analyze:
       if not uploaded_file:
         st.warning("⚠️ Vui lòng tải lên ảnh lá số trước!")
@@ -364,6 +371,7 @@ with tab_main:
               content_payload.extend([f"Cung {cung_name}:", crop_img])
             content_payload.append(user_prompt)
 
+            # CẬP NHẬT TÊN MODEL SANG GEMINI-3.6-FLASH
             response = client.models.generate_content(
                 model="gemini-3.6-flash",
                 contents=content_payload,
@@ -382,7 +390,6 @@ with tab_main:
           except Exception as e:
             st.error(f"❌ Lỗi AI Engine: {e}")
 
-    # Hiển thị bài luận giải
     if st.session_state.analysis_result:
       st.markdown(st.session_state.analysis_result)
     else:
