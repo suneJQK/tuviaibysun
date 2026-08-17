@@ -16,7 +16,6 @@
             padding: 12px;
         }
 
-        /* CỘT TRÁI: CỐ ĐỊNH CHAT & ĐIỀU KHIỂN */
         .col-left {
             flex: 1;
             background: #1e222d;
@@ -27,7 +26,6 @@
             overflow: hidden;
         }
 
-        /* CỘT PHẢI: BÀI LUẬN GIẢI CUỘN ĐỘC LẬP */
         .col-right {
             flex: 1.4;
             background: #1e222d;
@@ -55,7 +53,6 @@
             color: #d1d5db;
         }
 
-        /* Custom Scrollbar */
         .card-body::-webkit-scrollbar { width: 6px; }
         .card-body::-webkit-scrollbar-thumb { background-color: #363945; border-radius: 4px; }
         .card-body::-webkit-scrollbar-thumb:hover { background-color: #f6d365; }
@@ -72,18 +69,16 @@
 </head>
 <body>
     <div class="main-layout">
-        <!-- CỘT TRÁI -->
         <div class="col-left">
             <div class="card-header">💬 TRÒ CHUYỆN & HỎI ĐÁP LÁ SỐ</div>
-            <div class="card-body" id="chat-container">
+            <div class="card-body">
                 <!-- CHAT_HISTORY_PLACEHOLDER -->
             </div>
         </div>
 
-        <!-- CỘT PHẢI -->
         <div class="col-right">
-            <div class="card-header">📜 BÀI LUẬN GIẢI TỰ ĐỘNG (GEMINI 3.6)</div>
-            <div class="card-body" id="analysis-container">
+            <div class="card-header">📜 BÀI LUẬN GIẢI TỰ ĐỘNG (GEMINI)</div>
+            <div class="card-body">
                 <!-- ANALYSIS_RESULT_PLACEHOLDER -->
             </div>
         </div>
