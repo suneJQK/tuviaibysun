@@ -19,12 +19,23 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# --- 2. CSS HIỆN NÚT SIDEBAR ---
 st.markdown(
     """
     <style>
     footer { visibility: hidden; }
     #MainMenu { visibility: hidden; }
-    header { visibility: hidden; }
+    
+    /* Hiện lại nút mở/đóng Sidebar */
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        z-index: 999999 !important;
+        top: 10px !important;
+        left: 10px !important;
+    }
+
     .block-container { padding: 0rem !important; margin: 0rem !important; max-width: 100% !important; }
     iframe { display: block; width: 100vw !important; height: 100vh !important; border: none; }
     </style>
@@ -32,7 +43,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- 2. SECRETS & FILE PATHS ---
+# --- 3. DỮ LIỆU & SECRETS ---
 API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 GITHUB_TOKEN = st.secrets.get(
     "GITHUB_TOKEN", os.environ.get("GITHUB_TOKEN", "")
@@ -61,7 +72,7 @@ def upload_to_github(uploaded_file):
     return False
 
 
-# --- 3. SESSION STATES (KHỞI TẠO GIÁ TRỊ MẶC ĐỊNH LÀ STR) ---
+# --- 4. SESSION STATES ---
 if "chat_history" not in st.session_state:
   st.session_state.chat_history = []
 
@@ -70,11 +81,11 @@ if (
     or st.session_state.analysis_result is None
 ):
   st.session_state.analysis_result = (
-      "<p style='color:#a0aec0;'>👈 Vui lòng tải lá số ở thanh điều khiển để"
-      " tạo bài luận giải.</p>"
+      "<p style='color:#a0aec0;'>👈 Bấm vào mũi tên <b>&gt;</b> ở góc trên trái"
+      " để mở thanh điều khiển, tải lá số và tạo bài luận.</p>"
   )
 
-# --- 4. SIDEBAR ĐIỀU KHIỂN ---
+# --- 5. SIDEBAR ĐIỀU KHIỂN BÊN TRÁI ---
 with st.sidebar:
   st.title("⚙️ Điều Khiển Engine")
   uploaded_file = st.file_uploader(
@@ -124,14 +135,14 @@ with st.sidebar:
           st.error(f"❌ Lỗi API: {e}")
 
   st.markdown("---")
-  chat_input = st.text_input("💬 Nhập câu hỏi:")
+  chat_input = st.text_input("💬 Nhập câu hỏi chat:")
   if st.button("Gửi câu hỏi", use_container_width=True):
     if chat_input and API_KEY:
       try:
         client = genai.Client(api_key=API_KEY)
         prompt = f"BÀI LUẬN:\n{st.session_state.analysis_result}\n\nCÂU HỎI: {chat_input}"
         chat_res = client.models.generate_content(
-            model="gemini-2.5-flash", contents=[prompt]
+            model="gemini-3.6-flash", contents=[prompt]
         )
         if chat_res and chat_res.text:
           st.session_state.chat_history.append(("User", chat_input))
@@ -140,7 +151,7 @@ with st.sidebar:
       except Exception as e:
         st.error(f"❌ Lỗi gửi chat: {e}")
 
-# --- 5. RENDER HTML ---
+# --- 6. RENDER FILE INDEX.HTML ---
 if INDEX_FILE.exists():
   with open(INDEX_FILE, "r", encoding="utf-8") as f:
     html_content = f.read()
@@ -150,7 +161,6 @@ if INDEX_FILE.exists():
     css_class = "chat-user" if role == "User" else "chat-ai"
     chat_html += f'<div class="chat-bubble {css_class}"><b>{role}:</b> {str(text).replace("\n", "<br>")}</div>'
 
-  # Ép kiểu str() bắt buộc để tránh TypeError
   safe_analysis = str(st.session_state.analysis_result or "")
 
   final_html = html_content.replace(
@@ -159,4 +169,4 @@ if INDEX_FILE.exists():
 
   components.html(final_html, height=1000, scrolling=True)
 else:
-  st.error("❌ không tìm thấy file index.html!")
+  st.error("❌ Không tìm thấy file index.html!")
