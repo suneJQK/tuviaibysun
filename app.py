@@ -18,34 +18,58 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- 2. TÙY CHỈNH GIAO DIỆN (CSS TỐI ƯU CỘT TRÁI CỐ ĐỊNH & PHÂN BỔ) ---
+# --- 2. CSS TỐI ƯU CUỘN ĐỘC LẬP (LEFT FIXED, RIGHT SCROLL) ---
 st.markdown(
     """
     <style>
-    /* Ẩn Toolbar và Footer */
+    /* Ẩn Toolbar, Header và Footer thừa */
     div[data-testid="stToolbar"] { visibility: hidden; }
     footer { visibility: hidden; }
+    header { visibility: hidden; }
     .stApp { background-color: #0e1117; }
 
-    /* Hiển thị cưỡng chế nút đóng/mở Sidebar */
-    button[data-testid="stSidebarCollapseButton"],
-    button[data-testid="baseButton-header"],
-    div[data-testid="stSidebarNav"] button,
-    [data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
+    /* Khóa cuộn của trang chính để tạo hiệu ứng ứng dụng desktop */
+    .main .block-container {
+        padding-top: 1.5rem !important;
+        padding-bottom: 0rem !important;
+        max-width: 98% !important;
     }
 
     /* Tiêu đề chính */
     .main-header {
-        font-size: 2.2rem;
+        font-size: 2rem;
         font-weight: 700;
         color: #f6d365;
         text-align: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.8rem;
         text-shadow: 0px 0px 10px rgba(246, 211, 101, 0.2);
+    }
+
+    /* CỘT TRÁI: CỐ ĐỊNH HOÀN TOÀN (Gồm Upload + Khung Chat) */
+    [data-testid="column"]:nth-child(1) {
+        height: calc(100vh - 130px);
+        overflow-y: auto;
+        padding-right: 15px;
+        border-right: 1px solid #262730;
+    }
+
+    /* CỘT PHẢI: TRƯỢT/CUỘN ĐỘC LẬP (Bài luận giải dài) */
+    [data-testid="column"]:nth-child(2) {
+        height: calc(100vh - 130px);
+        overflow-y: auto;
+        padding-left: 15px;
+    }
+
+    /* Tùy chỉnh thanh cuộn đẹp mắt cho cả 2 cột */
+    [data-testid="column"]::-webkit-scrollbar {
+        width: 6px;
+    }
+    [data-testid="column"]::-webkit-scrollbar-thumb {
+        background-color: #363945;
+        border-radius: 4px;
+    }
+    [data-testid="column"]::-webkit-scrollbar-thumb:hover {
+        background-color: #f6d365;
     }
 
     /* Style nút bấm */
@@ -60,25 +84,6 @@ st.markdown(
     div.stButton > button[kind="primary"]:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(246, 211, 101, 0.4);
-    }
-
-    /* CỐ ĐỊNH CỘT TRÁI KHI CUỘN CỘT PHẢI */
-    [data-testid="column"]:nth-child(1) {
-        position: sticky;
-        top: 1rem;
-        align-self: flex-start;
-        max-height: 92vh;
-        overflow-y: auto;
-        padding-right: 12px;
-    }
-
-    /* THANH CUỘN ĐẸP CHO CỘT TRÁI */
-    [data-testid="column"]:nth-child(1)::-webkit-scrollbar {
-        width: 6px;
-    }
-    [data-testid="column"]:nth-child(1)::-webkit-scrollbar-thumb {
-        background-color: #333;
-        border-radius: 4px;
     }
     </style>
     """,
@@ -225,9 +230,9 @@ tab_main, tab_rules, tab_books, tab_contact = st.tabs([
 # TAB 1: LUẬN GIẢI LÁ SỐ
 # ==========================================
 with tab_main:
-  col_input, col_output = st.columns([1.1, 1.3], gap="large")
+  col_input, col_output = st.columns([1, 1.3], gap="medium")
 
-  # CỘT TRÁI: UPLOAD, LÁ SỐ & KHUNG CHAT (CỐ ĐỊNH STICKY)
+  # CỘT TRÁI: CỐ ĐỊNH VỚI MÀN HÌNH (TỰ CÓ THANH CUỘN BÊN TRÁI NẾU MÀN HÌNH NHỎ)
   with col_input:
     st.subheader("📸 Upload & Căn Chỉnh Lá Số")
     uploaded_file = st.file_uploader(
@@ -268,7 +273,7 @@ with tab_main:
         use_container_width=True,
     )
 
-    # KHUNG CHAT TƯƠNG TÁC (ĐÃ CHUYỂN SANG CỘT TRÁI)
+    # KHUNG CHAT TRONG CỘT TRÁI
     st.markdown("---")
     st.subheader("💬 Trò Chuyện & Hỏi Thêm AI Về Lá Số")
 
@@ -277,7 +282,7 @@ with tab_main:
       with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-    # Ô nhập liệu chat ở Cột Trái
+    # Ô nhập liệu chat
     if chat_input_text := st.chat_input(
         "Đặt câu hỏi cho AI (Ví dụ: Hạn năm nay ra sao?, Cung Tử Tức thế"
         " nào?...)"
@@ -302,7 +307,6 @@ with tab_main:
               f"BÀI LUẬN LÁ SỐ:\n{st.session_state.analysis_result}"
           )
 
-          # Đóng gói ngữ cảnh
           history_context = ""
           for msg in st.session_state.chat_history[:-1]:
             role_name = "User" if msg["role"] == "user" else "AI"
@@ -323,11 +327,11 @@ with tab_main:
             st.session_state.chat_history.append(
                 {"role": "assistant", "content": chat_response.text}
             )
-            st.rerun()  # Cập nhật hiển thị ngay lập tức
+            st.rerun()
         except Exception as e:
           st.error(f"Lỗi phản hồi: {e}")
 
-  # CỘT PHẢI: KẾT QUẢ LUẬN GIẢI VĂN BẢN (CUỘN THOẢI MÁI)
+  # CỘT PHẢI: TRƯỢT/CUỘN ĐỘC LẬP
   with col_output:
     st.subheader("📜 Kết Quả Luận Giải Tự Động")
 
@@ -371,9 +375,7 @@ with tab_main:
 
             if response and response.text:
               st.session_state.analysis_result = response.text
-              st.session_state.chat_history = (
-                  []
-              )  # Xóa chat cũ khi có lá số mới
+              st.session_state.chat_history = []
               st.success("✅ Hoàn tất luận giải!")
               st.rerun()
 
