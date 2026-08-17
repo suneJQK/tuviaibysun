@@ -11,27 +11,48 @@ from PIL import Image
 import streamlit as st
 import streamlit.components.v1 as components
 
-# --- CẤU HÌNH TRANG ---
+# --- 1. CẤU HÌNH TRANG: LUÔN MỞ SIDEBAR MẶC ĐỊNH ---
 st.set_page_config(
     page_title="Tử Vi Đẩu Số Engine",
     page_icon="☯️",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded",  # Mở sẵn Sidebar khi tải trang
 )
 
-# Ẩn header/footer mặc định của Streamlit
+# --- 2. CSS CHUẨN: ẨN FOOTER/HEADER NHƯNG GIỮ LẠI NÚT SIDEBAR ---
 st.markdown(
     """
     <style>
-    #MainMenu, header, footer { visibility: hidden; }
-    .block-container { padding: 0rem !important; margin: 0rem !important; max-width: 100% !important; }
-    iframe { display: block; width: 100vw !important; height: 100vh !important; }
+    /* Ẩn footer và menu chính */
+    footer { visibility: hidden; }
+    #MainMenu { visibility: hidden; }
+    
+    /* Ép hiển thị cưỡng chế nút mở/đóng Sidebar */
+    button[data-testid="stSidebarCollapseButton"],
+    button[data-testid="baseButton-header"],
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
+    }
+
+    .block-container { 
+        padding: 0rem !important; 
+        margin: 0rem !important; 
+        max-width: 100% !important; 
+    }
+    iframe { 
+        display: block; 
+        width: 100vw !important; 
+        height: 100vh !important; 
+    }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# --- SECRETS & DỮ LIỆU ---
+# --- 3. SECRETS & DỮ LIỆU ---
 API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY", ""))
 GITHUB_TOKEN = st.secrets.get(
     "GITHUB_TOKEN", os.environ.get("GITHUB_TOKEN", "")
@@ -85,35 +106,34 @@ def crop_12_cung_overlap(img):
   }
 
 
-# --- SESSION STATE ---
+# --- 4. SESSION STATE ---
 if "chat_history" not in st.session_state:
   st.session_state.chat_history = []
 if "analysis_result" not in st.session_state:
   st.session_state.analysis_result = (
-      "<p style='color:#a0aec0;'>👈 Hãy sử dụng thanh điều khiển bên trái để"
-      " tải lá số và tạo bài luận giải.</p>"
+      "<p style='color:#a0aec0;'>👈 Vui lòng sử dụng thanh điều khiển bên trái"
+      " để tải lá số và tạo bài luận giải.</p>"
   )
 
-# --- SIDEBAR (BẢNG ĐIỀU KHIỂN CHÍNH) ---
+# --- 5. SIDEBAR BÊN TRÁI (BẢNG ĐIỀU KHIỂN CHÍNH) ---
 with st.sidebar:
   st.title("⚙️ Điều Khiển Engine")
   uploaded_file = st.file_uploader(
-      " Tải lên lá số:", type=["jpg", "jpeg", "png", "webp"]
+      "📸 Tải lên lá số:", type=["jpg", "jpeg", "png", "webp"]
   )
   selected_year = st.number_input("📅 Năm Tiểu Hạn:", 1950, 2050, 2026)
 
   if st.button("🔮 BẮT ĐẦU LUẬN GIẢI", type="primary", use_container_width=True):
     if not uploaded_file:
-      st.warning("Vui lòng tải lên ảnh lá số!")
+      st.warning("⚠️ Vui lòng tải lên ảnh lá số!")
     elif not API_KEY:
-      st.error("Chưa cấu hình GEMINI_API_KEY!")
+      st.error("❌ Chưa cấu hình GEMINI_API_KEY!")
     else:
-      with st.spinner("AI đang xử lý..."):
+      with st.spinner("⚡ AI đang xử lý bài luận..."):
         upload_to_github(uploaded_file)
         image = Image.open(uploaded_file).convert("RGB")
         cropped_dict = crop_12_cung_overlap(image)
 
-        # Đọc quy tắc
         engine_rules = ""
         if ENGINE_FILE.exists():
           with open(ENGINE_FILE, "r", encoding="utf-8") as f:
@@ -137,17 +157,16 @@ with st.sidebar:
         )
 
         if response and response.text:
-          # Định dạng xuống dòng HTML
           st.session_state.analysis_result = response.text.replace(
               "\n", "<br>"
           )
           st.session_state.chat_history = []
-          st.success("Hoàn tất!")
+          st.success("✅ Hoàn tất!")
           st.rerun()
 
   st.markdown("---")
-  st.subheader("💬 Hỏi đáp thêm")
-  chat_input = st.text_input("Nhập câu hỏi:")
+  st.subheader("💬 Trò Chuyện & Hỏi Đáp")
+  chat_input = st.text_input("Nhập câu hỏi cho AI:")
   if st.button("Gửi câu hỏi", use_container_width=True):
     if chat_input and API_KEY:
       client = genai.Client(api_key=API_KEY)
@@ -160,18 +179,16 @@ with st.sidebar:
         st.session_state.chat_history.append(("AI", chat_res.text))
         st.rerun()
 
-# --- REENDER HTML ---
+# --- 6. RENDER GIAO DIỆN INDEX.HTML ---
 if INDEX_FILE.exists():
   with open(INDEX_FILE, "r", encoding="utf-8") as f:
     html_template = f.read()
 
-  # Tạo HTML cho khung chat
   chat_html = ""
   for role, text in st.session_state.chat_history:
     css_class = "chat-user" if role == "User" else "chat-ai"
     chat_html += f'<div class="chat-bubble {css_class}"><b>{role}:</b> {text.replace("\n", "<br>")}</div>'
 
-  # Ghép dữ liệu từ Python vào file HTML
   final_html = html_template.replace(
       "<!-- CHAT_HISTORY_PLACEHOLDER -->", chat_html
   ).replace(
@@ -180,4 +197,4 @@ if INDEX_FILE.exists():
 
   components.html(final_html, height=900, scrolling=False)
 else:
-  st.error("Không tìm thấy file index.html!")
+  st.error("❌ Không tìm thấy file index.html!")
