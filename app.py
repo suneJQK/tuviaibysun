@@ -18,7 +18,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- 2. TÙY CHỈNH GIAO DIỆN (CSS TỐI ƯU CỘT & VÙNG CUỘN) ---
+# --- 2. TÙY CHỈNH GIAO DIỆN (CSS TỐI ƯU CỘT TRÁI CỐ ĐỊNH & PHÂN BỔ) ---
 st.markdown(
     """
     <style>
@@ -62,17 +62,17 @@ st.markdown(
         box-shadow: 0 4px 12px rgba(246, 211, 101, 0.4);
     }
 
-    /* CỐ ĐỊNH CỘT BÊN TRÁI (STICKY LEFT COLUMN) */
+    /* CỐ ĐỊNH CỘT TRÁI KHI CUỘN CỘT PHẢI */
     [data-testid="column"]:nth-child(1) {
         position: sticky;
-        top: 2rem;
+        top: 1rem;
         align-self: flex-start;
-        max-height: 90vh;
+        max-height: 92vh;
         overflow-y: auto;
-        padding-right: 10px;
+        padding-right: 12px;
     }
 
-    /* TÙY CHỈNH THANH CUỘN CHO CỘT TRÁI */
+    /* THANH CUỘN ĐẸP CHO CỘT TRÁI */
     [data-testid="column"]:nth-child(1)::-webkit-scrollbar {
         width: 6px;
     }
@@ -225,9 +225,9 @@ tab_main, tab_rules, tab_books, tab_contact = st.tabs([
 # TAB 1: LUẬN GIẢI LÁ SỐ
 # ==========================================
 with tab_main:
-  col_input, col_output = st.columns([1, 1.2], gap="large")
+  col_input, col_output = st.columns([1.1, 1.3], gap="large")
 
-  # CỘT TRÁI: CỐ ĐỊNH KHI CUỘN (STICKY)
+  # CỘT TRÁI: UPLOAD, LÁ SỐ & KHUNG CHAT (CỐ ĐỊNH STICKY)
   with col_input:
     st.subheader("📸 Upload & Căn Chỉnh Lá Số")
     uploaded_file = st.file_uploader(
@@ -268,7 +268,66 @@ with tab_main:
         use_container_width=True,
     )
 
-  # CỘT PHẢI: XUẤT KẾT QUẢ & CHAT DÀI THOẢI MÁI
+    # KHUNG CHAT TƯƠNG TÁC (ĐÃ CHUYỂN SANG CỘT TRÁI)
+    st.markdown("---")
+    st.subheader("💬 Trò Chuyện & Hỏi Thêm AI Về Lá Số")
+
+    # Render Lịch Sử Chat
+    for message in st.session_state.chat_history:
+      with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+    # Ô nhập liệu chat ở Cột Trái
+    if chat_input_text := st.chat_input(
+        "Đặt câu hỏi cho AI (Ví dụ: Hạn năm nay ra sao?, Cung Tử Tức thế"
+        " nào?...)"
+    ):
+      if not st.session_state.analysis_result:
+        st.warning("⚠️ Hãy thực hiện Luận Giải Lá Số trước khi bắt đầu chat!")
+      else:
+        # Lưu câu hỏi người dùng
+        st.session_state.chat_history.append(
+            {"role": "user", "content": chat_input_text}
+        )
+
+        # AI Phản hồi
+        try:
+          client = genai.Client(api_key=API_KEY)
+
+          chat_system_instruction = (
+              "Bạn là Chuyên Gia Tử Vi Đẩu Số đang trực tiếp tư vấn cho gia"
+              " chủ.\n"
+              "Dựa vào BÀI LUẬN ĐÃ LẬP dưới đây để trả lời câu hỏi chi"
+              " tiết:\n\n"
+              f"BÀI LUẬN LÁ SỐ:\n{st.session_state.analysis_result}"
+          )
+
+          # Đóng gói ngữ cảnh
+          history_context = ""
+          for msg in st.session_state.chat_history[:-1]:
+            role_name = "User" if msg["role"] == "user" else "AI"
+            history_context += f"{role_name}: {msg['content']}\n"
+
+          full_prompt = f"{history_context}\nUser: {chat_input_text}\nAI:"
+
+          chat_response = client.models.generate_content(
+              model="gemini-2.5-flash",
+              contents=[full_prompt],
+              config=types.GenerateContentConfig(
+                  system_instruction=chat_system_instruction,
+                  temperature=0.3,
+              ),
+          )
+
+          if chat_response and chat_response.text:
+            st.session_state.chat_history.append(
+                {"role": "assistant", "content": chat_response.text}
+            )
+            st.rerun()  # Cập nhật hiển thị ngay lập tức
+        except Exception as e:
+          st.error(f"Lỗi phản hồi: {e}")
+
+  # CỘT PHẢI: KẾT QUẢ LUẬN GIẢI VĂN BẢN (CUỘN THOẢI MÁI)
   with col_output:
     st.subheader("📜 Kết Quả Luận Giải Tự Động")
 
@@ -302,7 +361,7 @@ with tab_main:
             content_payload.append(user_prompt)
 
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.6-flash",
                 contents=content_payload,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction_text,
@@ -312,82 +371,20 @@ with tab_main:
 
             if response and response.text:
               st.session_state.analysis_result = response.text
-              st.session_state.chat_history = []  # Làm sạch chat khi có lá số mới
+              st.session_state.chat_history = (
+                  []
+              )  # Xóa chat cũ khi có lá số mới
               st.success("✅ Hoàn tất luận giải!")
+              st.rerun()
 
           except Exception as e:
             st.error(f"❌ Lỗi AI Engine: {e}")
 
-    # Display Analysis Text
+    # Hiển thị bài luận giải
     if st.session_state.analysis_result:
       st.markdown(st.session_state.analysis_result)
     else:
       st.info("👈 Bấm 'BẮT ĐẦU LUẬN GIẢI' ở cột bên trái để AI lập bài luận.")
-
-    # KHUNG CHAT TƯƠNG TÁC (LUÔN HIỂN THỊ CỐ ĐỊNH Ở CỘT PHẢI)
-    st.markdown("---")
-    st.subheader("💬 Trò Chuyện & Hỏi Thêm AI Về Lá Số")
-
-    # Render Lịch Sử Chat
-    for message in st.session_state.chat_history:
-      with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-    # Khung Nhập Liệu Chat
-    if chat_input_text := st.chat_input(
-        "Đặt câu hỏi cho AI (Ví dụ: Hạn năm nay ra sao?, Cung Tử Tức thế"
-        " nào?...)"
-    ):
-      if not st.session_state.analysis_result:
-        st.warning("⚠️ Hãy thực hiện Luận Giải Lá Số trước khi bắt đầu chat!")
-      else:
-        # Thêm câu hỏi người dùng
-        st.session_state.chat_history.append(
-            {"role": "user", "content": chat_input_text}
-        )
-        with st.chat_message("user"):
-          st.markdown(chat_input_text)
-
-        # AI Phản hồi
-        with st.chat_message("assistant"):
-          with st.spinner("AI đang giải đáp dựa trên lá số..."):
-            try:
-              client = genai.Client(api_key=API_KEY)
-
-              chat_system_instruction = (
-                  "Bạn là Chuyên Gia Tử Vi Đẩu Số đang trực tiếp tư vấn cho gia"
-                  " chủ.\n"
-                  "Dựa vào BÀI LUẬN ĐÃ LẬP dưới đây để trả lời câu hỏi chi"
-                  " tiết:\n\n"
-                  f"BÀI LUẬN LÁ SỐ:\n{st.session_state.analysis_result}"
-              )
-
-              # Chuẩn bị Context Chat
-              history_context = ""
-              for msg in st.session_state.chat_history[:-1]:
-                role_name = "User" if msg["role"] == "user" else "AI"
-                history_context += f"{role_name}: {msg['content']}\n"
-
-              full_prompt = (
-                  f"{history_context}\nUser: {chat_input_text}\nAI:"
-              )
-
-              chat_response = client.models.generate_content(
-                  model="gemini-2.5-flash",
-                  contents=[full_prompt],
-                  config=types.GenerateContentConfig(
-                      system_instruction=chat_system_instruction,
-                      temperature=0.3,
-                  ),
-              )
-
-              if chat_response and chat_response.text:
-                st.markdown(chat_response.text)
-                st.session_state.chat_history.append(
-                    {"role": "assistant", "content": chat_response.text}
-                )
-            except Exception as e:
-              st.error(f"Lỗi phản hồi: {e}")
 
 # ==========================================
 # TAB 2, 3, 4: GIỮ NGUYÊN TÍNH NĂNG
