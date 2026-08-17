@@ -39,7 +39,7 @@ BASE_DIR = Path(__file__).parent
 ENGINE_FILE = BASE_DIR / "tu_vi_engine.json"
 CACHE_FILE = BASE_DIR / "books_cache.json"
 INDEX_FILE = BASE_DIR / "index.html"
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-3.6-flash"
 
 
 # --- HÀM TẢI LÊN GITHUB ---
