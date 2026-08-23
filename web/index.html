@@ -1,426 +1,370 @@
-<!doctype html>
-<html lang="vi" data-theme="ink">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#14110e">
-<meta name="description" content="TV AI — Tử Vi Đẩu Số: engine tất định lập lá số 12 địa bàn, Cách Cục có Rule ID + Evidence, vận hạn 4 lớp, AI luận giải và Audit.">
-<meta name="color-scheme" content="dark light">
-<title>TV AI · Tử Vi Đẩu Số</title>
-
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314110e'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle' fill='%23d8b46a'%3E%E2%98%AF%3C/text%3E%3C/svg%3E">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="description" content="Tử Vi Đẩu Số — Engine Python tất định, AI luận giải, có Audit.">
+<title>Tử Vi Đẩu Số — TV AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-
-<!-- van10.css nạp trước để style.css giữ quyền quyết định cuối -->
-<link rel="stylesheet" href="/web/van10.css">
-<link rel="stylesheet" href="/web/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23f0c97a'/%3E%3Cstop offset='1' stop-color='%23d4a857'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='44' fill='%230a0e1a'/%3E%3Ccircle cx='50' cy='50' r='34' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='50' r='10' fill='%230a0e1a'/%3E%3Ccircle cx='50' cy='22' r='2.5' fill='%23f0c97a'/%3E%3Ccircle cx='78' cy='50' r='2.5' fill='%23f0c97a'/%3E%3Ccircle cx='50' cy='78' r='2.5' fill='%23f0c97a'/%3E%3Ccircle cx='22' cy='50' r='2.5' fill='%23f0c97a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
 <a class="skip-link" href="#view-chart">Bỏ qua điều hướng</a>
 
 <noscript>
   <div class="noscript-note">Ứng dụng cần JavaScript để lập lá số và luận giải. Vui lòng bật JavaScript.</div>
 </noscript>
 
+<!-- Starfield background -->
+<div class="starfield" aria-hidden="true">
+  <div class="stars-layer stars-near"></div>
+  <div class="stars-layer stars-mid"></div>
+  <div class="stars-layer stars-far"></div>
+  <div class="aurora aurora-1"></div>
+  <div class="aurora aurora-2"></div>
+</div>
+
 <div class="app" id="app">
 
   <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
   <aside class="sidebar" id="sidebar" aria-label="Bảng điều khiển lá số">
+    <div class="sidebar-inner">
 
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">☯</div>
-      <div class="brand-text">
-        <b>TV AI</b>
-        <span>Engine → Evidence → AI → Audit</span>
-      </div>
-      <button class="icon-btn drawer-close" id="drawerCloseBtn" type="button" title="Đóng bảng điều khiển" aria-label="Đóng bảng điều khiển">✕</button>
-    </div>
-
-    <div class="side-title">Hồ sơ lá số</div>
-
-    <div class="profile-manager card-mini">
-      <div class="profile-row">
-        <select id="profileSelect" aria-label="Chọn hồ sơ đã lưu">
-          <option value="">Hồ sơ mới</option>
-        </select>
-        <button class="icon-btn" id="newProfileBtn" type="button" title="Hồ sơ mới" aria-label="Tạo hồ sơ mới">＋</button>
-      </div>
-      <div class="profile-foot">
-        <div class="profile-id" id="profileId">ID: —</div>
-        <button class="link-btn danger" id="deleteProfileBtn" type="button" title="Xóa hồ sơ đang chọn">Xóa hồ sơ</button>
-      </div>
-    </div>
-
-    <div class="profile-box">
-      <label for="name">Họ tên</label>
-      <input id="name" placeholder="Không bắt buộc" autocomplete="name">
-
-      <div class="two">
-        <div>
-          <label for="day">Ngày</label>
-          <input id="day" type="number" value="1" min="1" max="31" inputmode="numeric">
+      <!-- Brand -->
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 80 80" width="44" height="44">
+            <defs>
+              <radialGradient id="brand-g" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#f5d97a"/>
+                <stop offset=".7" stop-color="#d4a857"/>
+                <stop offset="1" stop-color="#8a6a2c"/>
+              </radialGradient>
+            </defs>
+            <circle cx="40" cy="40" r="36" fill="#0a0e1a" stroke="url(#brand-g)" stroke-width="1.2"/>
+            <circle cx="40" cy="40" r="28" fill="none" stroke="url(#brand-g)" stroke-width=".6" opacity=".6"/>
+            <circle cx="40" cy="40" r="18" fill="url(#brand-g)"/>
+            <circle cx="40" cy="40" r="6" fill="#0a0e1a"/>
+            <!-- Cardinal points -->
+            <g fill="#f0c97a">
+              <circle cx="40" cy="14" r="1.6"/>
+              <circle cx="66" cy="40" r="1.6"/>
+              <circle cx="40" cy="66" r="1.6"/>
+              <circle cx="14" cy="40" r="1.6"/>
+              <circle cx="58" cy="22" r="1"/>
+              <circle cx="58" cy="58" r="1"/>
+              <circle cx="22" cy="58" r="1"/>
+              <circle cx="22" cy="22" r="1"/>
+            </g>
+          </svg>
         </div>
-        <div>
-          <label for="month">Tháng</label>
-          <input id="month" type="number" value="1" min="1" max="12" inputmode="numeric">
+        <div class="brand-text">
+          <div class="brand-name">Tử Vi Đẩu Số</div>
+          <div class="brand-tag">Engine tất định · AI có evidence · Audit mọi luận giải</div>
         </div>
       </div>
 
-      <label for="year">Năm sinh</label>
-      <input id="year" type="number" value="1996" min="1800" max="2200" inputmode="numeric">
-
-      <div class="two">
-        <div>
-          <label for="hour">Giờ sinh</label>
-          <select id="hour">
-            <option>Tý</option><option>Sửu</option><option>Dần</option><option>Mão</option>
-            <option>Thìn</option><option>Tỵ</option><option>Ngọ</option><option>Mùi</option>
-            <option>Thân</option><option>Dậu</option><option>Tuất</option><option>Hợi</option>
+      <!-- Profile selector -->
+      <section class="card profile-card">
+        <div class="card-head">
+          <h3>Hồ sơ</h3>
+          <span class="badge" id="profileCount">0</span>
+        </div>
+        <div class="profile-row">
+          <select id="profileSelect" class="select" aria-label="Chọn hồ sơ">
+            <option value="">— Chọn hồ sơ —</option>
           </select>
+          <button id="newProfileBtn" class="btn btn-ghost" type="button" title="Tạo hồ sơ mới">＋</button>
         </div>
-        <div>
-          <label for="gender">Giới tính</label>
-          <select id="gender"><option>Nam</option><option>Nữ</option></select>
+        <div class="profile-actions">
+          <button id="deleteProfileBtn" class="btn btn-quiet" type="button">Xoá hồ sơ</button>
+          <span class="profile-id" id="profileId" title="ID hồ sơ">—</span>
         </div>
+      </section>
+
+      <!-- Birth form -->
+      <section class="card form-card">
+        <div class="card-head">
+          <h3>Thông tin lá số</h3>
+          <span class="badge badge-live" id="engineDot" title="Trạng thái engine"></span>
+          <span class="engine-status" id="engineStatusText">sẵn sàng</span>
+        </div>
+        <form id="lapSoForm" autocomplete="off">
+          <label class="field">
+            <span>Họ tên</span>
+            <input id="name" name="name" type="text" placeholder="ví dụ: Nguyễn Văn A" maxlength="80">
+          </label>
+          <div class="grid-3">
+            <label class="field">
+              <span>Ngày</span>
+              <input id="day" name="day" type="number" min="1" max="31" value="15">
+            </label>
+            <label class="field">
+              <span>Tháng</span>
+              <input id="month" name="month" type="number" min="1" max="12" value="7">
+            </label>
+            <label class="field">
+              <span>Năm</span>
+              <input id="year" name="year" type="number" min="1800" max="2200" value="1996">
+            </label>
+          </div>
+          <div class="grid-2">
+            <label class="field">
+              <span>Giờ sinh</span>
+              <select id="hour" name="hour" class="select"></select>
+            </label>
+            <label class="field">
+              <span>Giới tính</span>
+              <select id="gender" name="gender" class="select">
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+              </select>
+            </label>
+          </div>
+          <div class="grid-2">
+            <label class="field">
+              <span>Lịch</span>
+              <select id="calendar" name="calendar" class="select">
+                <option value="true">Dương lịch</option>
+                <option value="false">Âm lịch</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Múi giờ</span>
+              <input id="tz" name="tz" type="number" step="0.5" value="7">
+            </label>
+          </div>
+          <label class="field">
+            <span>Năm xem vận</span>
+            <input id="viewYear" name="viewYear" type="number" min="1800" max="2200" placeholder="Mặc định = năm hiện tại">
+          </label>
+
+          <button id="calcBtn" class="btn btn-primary btn-block" type="submit">
+            <span class="btn-icon" aria-hidden="true">✦</span>
+            <span>Lập lá số</span>
+          </button>
+
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+        </form>
+        <div class="quick-summary" id="quickSummary" hidden>
+          <div class="qs-row"><span>Mệnh</span><strong id="sMenh">—</strong></div>
+          <div class="qs-row"><span>Bản mệnh</span><strong id="sBanMenh">—</strong></div>
+          <div class="qs-row"><span>Cục</span><strong id="sCuc">—</strong></div>
+          <div class="qs-row qs-cach"><span>Cách cục</span><strong id="sCach">—</strong></div>
+          <div class="qs-legend" id="nguHanhLegend"></div>
+          <div class="qs-legend" id="relationLegend"></div>
+        </div>
+      </section>
+
+      <!-- Storage info -->
+      <section class="card storage-card" id="storageInfo">
+        <div class="card-head"><h3>Lưu trữ</h3></div>
+        <div class="storage-actions">
+          <button id="exportProfileBtn" class="btn btn-quiet" type="button">Xuất hồ sơ</button>
+          <button id="importProfileBtn" class="btn btn-quiet" type="button">Nhập hồ sơ</button>
+          <input type="file" id="importProfileInput" accept="application/json" hidden>
+        </div>
+      </section>
+
+      <!-- Bottom toolbar -->
+      <div class="sidebar-foot">
+        <button id="aiSettingsBtn" class="btn btn-ghost btn-icon-only" type="button" title="Cấu hình AI" aria-label="Cấu hình AI">🤖</button>
+        <button id="themeBtn" class="btn btn-ghost btn-icon-only" type="button" title="Đổi giao diện" aria-label="Đổi giao diện">☾</button>
+        <button id="helpBtn" class="btn btn-ghost btn-icon-only" type="button" title="Trợ giúp" aria-label="Trợ giúp">?</button>
+        <button id="resetBtn" class="btn btn-ghost btn-icon-only" type="button" title="Đặt lại" aria-label="Đặt lại">⟲</button>
       </div>
 
-      <div class="two">
-        <div>
-          <label for="calendar">Lịch</label>
-          <select id="calendar">
-            <option value="true">Dương lịch</option>
-            <option value="false">Âm lịch</option>
-          </select>
-        </div>
-        <div>
-          <label for="tz">Múi giờ</label>
-          <input id="tz" type="number" value="7" step="0.5" min="-12" max="14" inputmode="decimal">
-        </div>
-      </div>
-
-      <label for="viewYear">Năm xem</label>
-      <input id="viewYear" type="number" min="1800" max="2200" step="1" inputmode="numeric">
-      <div class="view-year-help">Năm này được gửi vào <code>nam_xem</code> / <code>year</code>, dùng cho Đại vận · Lưu niên Đại vận · Tiểu vận · Lưu niên năm.</div>
-
-      <button class="primary" id="calcBtn" type="button">
-        <span>Lập lá số</span>
-        <kbd>Ctrl ↵</kbd>
-      </button>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
-    </div>
-
-    <div class="side-title">Điều hướng</div>
-    <nav class="side-nav" aria-label="Khu vực làm việc">
-      <button class="nav active" type="button" data-view="chart"><i aria-hidden="true">◈</i> 12 Địa Bàn</button>
-      <button class="nav" type="button" data-view="cach"><i aria-hidden="true">✦</i> Cách Cục <span class="nav-badge" id="cachBadge">0</span></button>
-      <button class="nav" type="button" data-view="stars"><i aria-hidden="true">☷</i> Danh bạ sao</button>
-      <button class="nav" type="button" data-view="relations"><i aria-hidden="true">◎</i> Quan hệ cung</button>
-      <button class="nav" type="button" data-view="ai"><i aria-hidden="true">✎</i> AI luận giải</button>
-      <button class="nav" type="button" data-view="audit"><i aria-hidden="true">✓</i> Evidence / Audit</button>
-      <button class="nav" type="button" data-view="data"><i aria-hidden="true">⌘</i> Dữ liệu engine</button>
-    </nav>
-
-    <div class="side-foot">
-      <span class="dot" id="engineDot"></span>
-      <span id="engineStatusText">Đang kiểm tra engine…</span>
     </div>
   </aside>
 
   <div class="drawer-scrim" id="drawerScrim" hidden></div>
+  <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Đóng menu">×</button>
 
   <!-- ═══════════════════════ MAIN ═══════════════════════ -->
   <main class="main">
 
+    <!-- Topbar -->
     <header class="topbar">
-      <div class="topbar-lead">
-        <button class="icon-btn menu-btn" id="menuBtn" type="button" title="Mở bảng điều khiển" aria-label="Mở bảng điều khiển" aria-expanded="false">☰</button>
-        <div>
-          <div class="eyebrow">Tử Vi Đẩu Số</div>
-          <h1 id="pageTitle">12 Địa Bàn</h1>
-          <div class="engine-strip">
-            <span>Engine <b>V2</b></span>
-            <span>Rules <b id="ruleCount">—</b></span>
-            <span>Thư viện <b id="cachLibraryCount">—</b></span>
-            <span>AI <b id="aiProviderBadge">—</b></span>
-            <span id="auditStatus" class="ok">Audit ready</span>
-          </div>
-        </div>
+      <div class="topbar-left">
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Mở menu" aria-controls="sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <h1 class="page-title" id="pageTitle">Lá số tử vi</h1>
       </div>
-
-      <div class="top-actions">
-        <button class="ghost" id="printBtn" type="button">In / PDF</button>
-        <button class="ghost" id="copyJsonBtn" type="button">Sao chép JSON</button>
-        <button class="ghost" id="downloadJsonBtn" type="button">Tải JSON</button>
-        <button class="ghost" id="exportProfileBtn" type="button">Xuất hồ sơ</button>
-        <button class="ghost" id="importProfileBtn" type="button">Nhập hồ sơ</button>
-        <button class="ghost" id="aiSettingsBtn" type="button">Thiết lập AI</button>
-        <button class="ghost" id="themeBtn" type="button" title="Đổi giao diện sáng / tối">◐ Giao diện</button>
-        <button class="ghost" id="helpBtn" type="button" title="Phím tắt">? Phím tắt</button>
-        <button class="ghost danger" id="resetBtn" type="button">Xóa</button>
-        <input id="importProfileInput" type="file" accept="application/json" hidden>
+      <div class="topbar-meta">
+        <span class="meta-chip" title="Số rule audit">📜 <span id="ruleCount">—</span></span>
+        <span class="meta-chip" title="Thư viện cách cục">🗂 <span id="cachLibraryCount">—</span></span>
+        <span class="meta-chip" title="AI provider" id="aiProviderBadge">⚙ Gemini</span>
+        <span class="meta-chip" title="Audit" id="auditStatus">🛡 —</span>
       </div>
     </header>
 
-    <nav class="tabbar" aria-label="Chuyển khu vực">
-      <button class="nav active" type="button" data-view="chart">12 Địa Bàn</button>
-      <button class="nav" type="button" data-view="cach">Cách Cục</button>
-      <button class="nav" type="button" data-view="stars">Danh bạ sao</button>
-      <button class="nav" type="button" data-view="relations">Quan hệ cung</button>
-      <button class="nav" type="button" data-view="ai">AI luận giải</button>
-      <button class="nav" type="button" data-view="audit">Audit</button>
-      <button class="nav" type="button" data-view="data">Dữ liệu</button>
+    <!-- Tab navigation -->
+    <nav class="tabbar" role="tablist" aria-label="Chế độ xem">
+      <button class="tab active" role="tab" aria-selected="true" data-target="view-chart">✶ Lá số</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="view-cach">⚖ Cách cục</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="view-stars">★ Sao</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="view-relations">⌘ Quan hệ</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="view-ai">✦ Luận giải AI</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="view-audit">🛡 Audit</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="view-data">{ } Dữ liệu</button>
     </nav>
 
-    <!-- ─────────── VIEW: CHART ─────────── -->
-    <section id="view-chart" class="view active" aria-label="12 Địa Bàn">
-
-      <div class="stats">
-        <div><span>Cung Mệnh</span><b id="sMenh">—</b></div>
-        <div><span>Bản Mệnh</span><b id="sBanMenh">—</b></div>
-        <div><span>Mệnh Cục</span><b id="sCuc">—</b></div>
-        <div><span>Số sao hiện diện</span><b id="sCach">0</b></div>
-      </div>
-
-      <section class="legend-panel card">
-        <div class="card-head compact">
-          <div>
-            <h2>Hệ quy chiếu</h2>
-            <span>Tô màu ngũ hành · nhấn mạnh Tam Hợp / Xung Chiếu / Nhị Hợp / Giáp Cung ngay trên bàn số</span>
-          </div>
-        </div>
-        <div class="legend-grid">
-          <div>
-            <div class="legend-title">Ngũ hành</div>
-            <div id="nguHanhLegend" class="legend-items"><span class="source-chip">Chưa có dữ liệu</span></div>
-          </div>
-          <div>
-            <div class="legend-title">Quan hệ cung</div>
-            <div id="relationLegend" class="legend-items relation-legend"><span class="source-chip">Chọn một cung để xem</span></div>
-          </div>
-          <div>
-            <div class="legend-title">Cung đang chọn</div>
-            <div id="selectionSummary" class="selection-summary empty-state">Chưa chọn cung.</div>
-          </div>
-        </div>
-      </section>
-
-      <div class="workspace">
-        <section class="card chart-card">
-          <div class="card-head">
-            <div>
-              <h2>12 Địa Bàn</h2>
-              <span>Chọn một cung để xem quan hệ Tam Hợp · Xung Chiếu · Nhị Hợp · Giáp Cung</span>
-            </div>
-            <div class="card-actions">
-              <button class="ghost small" id="focusBoardBtn" type="button">Tập trung bàn số</button>
-            </div>
-          </div>
-
-          <div class="board-shell" id="boardShell">
-            <div id="board" class="board"></div>
-            <div class="board-center" id="boardCenter">
-              <div class="bc-empty">Chưa lập lá số</div>
-            </div>
-          </div>
-
-          <div id="detail" class="detail hidden" aria-hidden="true"></div>
-        </section>
-
-        <aside class="card summary-card">
-          <h2>Thông tin lá số</h2>
-          <div id="summary">Chưa có dữ liệu.</div>
-          <div id="storageInfo" class="storage-info"></div>
-        </aside>
-      </div>
-
-      <div id="van10Panel"></div>
-    </section>
-
-    <!-- ─────────── VIEW: CÁCH CỤC ─────────── -->
-    <section id="view-cach" class="view" aria-label="Cách Cục">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2>Cách Cục xác nhận từ Engine</h2>
-            <span>Chỉ hiển thị Cách Cục có Rule ID + Evidence. Không tự sinh tên ngoài rule engine.</span>
-          </div>
-          <strong id="cachCount">0</strong>
-        </div>
-        <div id="cachList" class="cach-list">
-          <div class="empty">Chưa có Cách Cục được xác định.</div>
+    <!-- VIEW: CHART -->
+    <section id="view-chart" class="view view-chart active" role="tabpanel">
+      <div class="chart-toolbar">
+        <button id="focusBoardBtn" class="btn btn-quiet" type="button">Phóng to lá số</button>
+        <div class="chart-toolbar-right">
+          <button id="printBtn" class="btn btn-quiet" type="button">🖨 In</button>
+          <button id="copyJsonBtn" class="btn btn-quiet" type="button">⧉ Sao chép JSON</button>
+          <button id="downloadJsonBtn" class="btn btn-quiet" type="button">⬇ Tải JSON</button>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2>Thư viện rule Cách Cục</h2>
-            <span>Toàn bộ rule engine đang nạp từ <code>/api/cach-cuc</code> — tra cứu định nghĩa gốc</span>
+      <!-- Board -->
+      <div class="board-shell" id="boardShell">
+        <div class="board-frame">
+          <div class="board-corners">
+            <span class="corner tl"></span><span class="corner tr"></span>
+            <span class="corner bl"></span><span class="corner br"></span>
           </div>
-          <div class="card-actions">
-            <button class="ghost small" id="reloadCachLibraryBtn" type="button">Tải lại</button>
+          <div class="board" id="board" aria-label="Lá số 12 cung"></div>
+          <div class="board-center" id="boardCenter" aria-hidden="false">
+            <div class="center-medallion" id="cachBadge" title="Cách cục lá số">—</div>
+            <div class="center-name" id="detail">—</div>
+            <div class="center-summary" id="summary">—</div>
+            <div class="center-van" id="van10Panel"><div class="van-empty">Chưa có dữ liệu vận hạn 10 năm. Hãy lập lá số trước.</div></div>
           </div>
         </div>
-        <div class="toolbar-inline">
-          <input id="cachLibrarySearch" type="search" placeholder="Lọc theo tên rule, Rule ID hoặc nhóm">
-          <div class="toolbar-hint">Danh sách chỉ để tra cứu, không dùng để gán Cách Cục cho lá số.</div>
+      </div>
+
+      <div class="cach-card" id="cachCard" hidden>
+        <div class="cach-head">
+          <h3>Cách cục khớp</h3>
+          <span class="cach-count" id="cachCount">0</span>
         </div>
-        <div id="cachLibrary" class="cach-library">
-          <div class="empty">Đang tải thư viện rule…</div>
-        </div>
+        <div class="cach-list" id="cachList"></div>
       </div>
     </section>
 
-    <!-- ─────────── VIEW: DANH BẠ SAO ─────────── -->
-    <section id="view-stars" class="view" aria-label="Danh bạ sao">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2>Danh bạ sao</h2>
-            <span>Tổng hợp toàn bộ sao hiện diện trên 12 cung từ dữ liệu engine</span>
-          </div>
-        </div>
-        <div class="toolbar-inline">
-          <input id="starSearch" type="search" placeholder="Lọc theo tên sao hoặc cung">
-          <div class="toolbar-hint">Tìm nhanh theo sao, cung hoặc ngũ hành. Nhấn <kbd>/</kbd> để vào ô tìm.</div>
-        </div>
-        <div id="starCatalog" class="star-catalog">
-          <div class="empty">Lập lá số để xem danh bạ sao.</div>
-        </div>
+    <!-- VIEW: CACH CUC -->
+    <section id="view-cach" class="view" role="tabpanel" hidden>
+      <div class="library-toolbar">
+        <input id="cachLibrarySearch" class="input" type="search" placeholder="🔍 Tìm trong thư viện cách cục…">
+        <button id="reloadCachLibraryBtn" class="btn btn-quiet" type="button">↻ Tải lại</button>
+      </div>
+      <div class="cach-library" id="cachLibrary" aria-live="polite">
+        <div class="empty">Đang tải thư viện cách cục…</div>
       </div>
     </section>
 
-    <!-- ─────────── VIEW: QUAN HỆ CUNG ─────────── -->
-    <section id="view-relations" class="view" aria-label="Quan hệ cung">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2>Quan hệ cung</h2>
-            <span id="relationSubtitle">Chọn một cung trên 12 Địa Bàn</span>
-          </div>
-        </div>
-        <div id="relationPanel" class="relation-grid">
-          <div class="empty">Chọn một cung để xem quan hệ.</div>
-        </div>
+    <!-- VIEW: STARS -->
+    <section id="view-stars" class="view" role="tabpanel" hidden>
+      <div class="library-toolbar">
+        <input id="starSearch" class="input" type="search" placeholder="🔍 Tìm sao…">
+      </div>
+      <div class="star-catalog" id="starCatalog">
+        <div class="empty">Hãy lập lá số để xem danh mục sao của bạn.</div>
       </div>
     </section>
 
-    <!-- ─────────── VIEW: AI ─────────── -->
-    <section id="view-ai" class="view" aria-label="AI luận giải">
-      <div class="ai-layout">
-        <section class="card chat-card">
-          <div class="chat-head">
-            <div>
-              <h2>AI luận giải</h2>
-              <span>Luận theo dữ liệu Engine authoritative đã audit</span>
-            </div>
-            <div class="card-actions">
-              <button class="ghost small" id="tocBtn" type="button">Mục lục</button>
-              <button class="ghost small" id="copyAnswerBtn" type="button">Sao chép</button>
-              <button class="ghost small" id="exportAnswerBtn" type="button">Tải .md</button>
+    <!-- VIEW: RELATIONS -->
+    <section id="view-relations" class="view" role="tabpanel" hidden>
+      <p class="relation-subtitle" id="relationSubtitle">Quan hệ Địa Chi: Tam Hợp · Xung Chiếu · Nhị Hợp · Giáp Cung. Engine là nguồn authoritative, frontend chỉ hiển thị.</p>
+      <div class="relation-panel" id="relationPanel">
+        <div class="empty">Chọn một cung trong lá số để xem quan hệ.</div>
+      </div>
+    </section>
+
+    <!-- VIEW: AI -->
+    <section id="view-ai" class="view" role="tabpanel" hidden>
+      <div class="ai-grid">
+        <div class="ai-main">
+          <div class="ai-toolbar">
+            <button id="tocBtn" class="btn btn-quiet" type="button">Mục lục</button>
+            <button id="copyAnswerBtn" class="btn btn-quiet" type="button">⧉ Sao chép</button>
+            <button id="exportAnswerBtn" class="btn btn-quiet" type="button">⬇ Xuất văn bản</button>
+          </div>
+          <div class="chat" id="chat" aria-live="polite">
+            <div class="chat-empty">
+              <div class="chat-empty-glyph">✦</div>
+              <h3>Đặt câu hỏi cho AI</h3>
+              <p>AI nhận context đã <em>audit</em> từ engine. Không suy luận trên dữ liệu thiếu.</p>
             </div>
           </div>
-
-          <div class="chat" id="chat">
-            <div class="assistant msg-bubble"><small>AI Tử Vi</small>Hãy lập lá số rồi đặt câu hỏi.</div>
-          </div>
-
           <div class="quick-ask" id="quickAsk">
-            <button class="ghost small" type="button" data-q="Luận tổng quan cung Mệnh, Thân và cách cục chủ đạo.">Tổng quan Mệnh · Thân</button>
-            <button class="ghost small" type="button" data-q="Luận sự nghiệp qua cung Quan Lộc và tam phương tứ chính.">Sự nghiệp</button>
-            <button class="ghost small" type="button" data-q="Luận tài lộc qua cung Tài Bạch, Phúc Đức và các sao tài.">Tài lộc</button>
-            <button class="ghost small" type="button" data-q="Luận hôn nhân, tình cảm qua cung Phu Thê và quan hệ xung chiếu.">Hôn nhân</button>
-            <button class="ghost small" type="button" data-q="Luận vận hạn năm xem: Đại vận, Lưu niên Đại vận, Tiểu vận, Lưu niên năm.">Vận hạn năm xem</button>
+            <button class="chip" data-q="Năm nay vận của tôi thế nào?">Năm nay vận của tôi?</button>
+            <button class="chip" data-q="Cách cục lá số này thuộc loại nào, điểm mạnh và rủi ro?">Phân tích cách cục</button>
+            <button class="chip" data-q="Tài vận và sự nghiệp 10 năm tới ra sao?">Tài vận 10 năm</button>
+            <button class="chip" data-q="Quan hệ và gia đạo năm nay cần lưu ý gì?">Quan hệ gia đạo</button>
+            <button class="chip" data-q="Sức khoẻ cần chú ý những gì?">Sức khoẻ</button>
           </div>
-
-          <div class="composer">
-            <textarea id="question" rows="3" placeholder="Nhập câu hỏi... Enter để gửi, Shift + Enter để xuống dòng"></textarea>
-            <div class="composer-side">
-              <button class="primary" id="askBtn" type="button">Gửi</button>
-              <div class="composer-count"><span id="qCount">0</span>/8000</div>
+          <form id="askForm" class="ask-form">
+            <textarea id="question" name="question" placeholder="Đặt câu hỏi cho AI (tối đa 8000 ký tự)…" rows="3" required></textarea>
+            <div class="ask-form-foot">
+              <span class="counter"><span id="qCount">0</span> / 8000</span>
+              <button id="askBtn" type="submit" class="btn btn-primary">
+                <span class="btn-icon">✦</span><span>Hỏi AI</span>
+              </button>
             </div>
-          </div>
-        </section>
-
-        <aside class="card context-card">
-          <h2>Thiết lập AI</h2>
-          <div class="ai-pref">
-            <label for="aiProviderSelect">Nhà cung cấp</label>
-            <select id="aiProviderSelect"></select>
-            <label for="aiModeSelect">Chế độ luận giải</label>
-            <select id="aiModeSelect"></select>
-            <div class="ai-mode-desc" id="aiModeDesc">—</div>
-            <button class="ghost small" id="saveAiPrefBtn" type="button">Lưu thiết lập</button>
-          </div>
-
-          <h2 class="mt">Dữ liệu AI</h2>
-          <div id="aiInfo">Chưa có lá số.</div>
-          <div id="aiSources" class="sources"></div>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ─────────── VIEW: AUDIT ─────────── -->
-    <section id="view-audit" class="view" aria-label="Evidence và Audit">
-      <div class="audit-grid">
-        <div class="audit-col">
-          <section class="card">
-            <div class="card-head">
-              <div>
-                <h2>Audit cấu trúc Engine</h2>
-                <span>12 cung · mapping chính tinh / phụ tinh / Tràng Sinh · evidence Cách Cục</span>
-              </div>
-              <button class="ghost small" id="runAuditBtn" type="button">Chạy Audit</button>
-            </div>
-            <div id="auditResult" class="audit-result">
-              <div class="empty">Lập lá số rồi bấm “Chạy Audit”.</div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="card-head">
-              <div>
-                <h2>Audit tên Cách Cục trong bài luận AI</h2>
-                <span>Đối chiếu mọi tên Cách Cục AI dùng với rule có evidence từ engine</span>
-              </div>
-              <span class="tag" id="nameAuditBadge">Chưa chạy</span>
-            </div>
-            <div id="auditNameResult" class="audit-result">
-              <div class="empty">Chưa có bài luận để kiểm tra.</div>
-            </div>
-          </section>
+          </form>
         </div>
 
-        <aside class="card">
-          <h2>Nguyên tắc</h2>
-          <div class="rule-list">
-            <div>✓ Chỉ Cách Cục có evidence từ Engine mới được gọi tên.</div>
-            <div>✓ Rule ID phải truy được.</div>
-            <div>✓ Không tự suy ra Tam Hợp / Xung Chiếu / Nhị Hợp / Giáp Cung.</div>
-            <div>✓ Vận hạn lấy từ engine, không tính lại trong UI.</div>
-            <div>✓ Audit phải chỉ rõ field nào có dữ liệu và field nào thiếu.</div>
-          </div>
+        <aside class="ai-side">
+          <section class="card">
+            <div class="card-head"><h3>Cấu hình AI</h3></div>
+            <label class="field">
+              <span>Provider</span>
+              <select id="aiProviderSelect" class="select">
+                <option value="gemini">Gemini</option>
+                <option value="openai">OpenAI / ChatGPT</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Chế độ luận giải</span>
+              <select id="aiModeSelect" class="select"></select>
+            </label>
+            <p class="ai-mode-desc" id="aiModeDesc">—</p>
+            <button id="saveAiPrefBtn" class="btn btn-quiet btn-block" type="button">💾 Lưu tuỳ chọn</button>
+            <div class="ai-info" id="aiInfo"></div>
+            <div class="ai-sources" id="aiSources"></div>
+          </section>
         </aside>
       </div>
     </section>
 
-    <!-- ─────────── VIEW: DATA ─────────── -->
-    <section id="view-data" class="view" aria-label="Dữ liệu engine">
+    <!-- VIEW: AUDIT -->
+    <section id="view-audit" class="view" role="tabpanel" hidden>
       <div class="card">
         <div class="card-head">
-          <div>
-            <h2>Dữ liệu engine</h2>
-            <span>Payload thô do <code>/api/lap-so</code> trả về — nguồn authoritative của toàn bộ giao diện</span>
-          </div>
-          <div class="card-actions">
-            <button class="ghost small" id="copyJsonInlineBtn" type="button">Sao chép</button>
-            <button class="ghost small" id="jsonSizeBadge" type="button" disabled>0 KB</button>
-          </div>
+          <h3>Audit mọi luận giải</h3>
+          <span class="badge badge-audit" id="nameAuditBadge">—</span>
         </div>
-        <pre id="jsonBox">Chưa có dữ liệu.</pre>
+        <p class="muted">Engine là nguồn <strong>authoritative</strong>. Mọi phát biểu của AI phải khớp rule + evidence. Nếu không khớp, AI không được phát biểu.</p>
+        <button id="runAuditBtn" class="btn btn-primary" type="button">
+          <span class="btn-icon">🛡</span><span>Chạy audit</span>
+        </button>
+        <div class="audit-result" id="auditResult" aria-live="polite"></div>
+        <div class="audit-name-result" id="auditNameResult"></div>
+      </div>
+    </section>
+
+    <!-- VIEW: DATA -->
+    <section id="view-data" class="view" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h3>JSON trả về từ Engine</h3>
+          <span class="json-size" id="jsonSizeBadge">0 KB</span>
+        </div>
+        <div class="json-actions">
+          <button id="copyJsonInlineBtn" class="btn btn-quiet" type="button">⧉ Sao chép</button>
+        </div>
+        <pre class="json-box" id="jsonBox" tabindex="0">{ }</pre>
       </div>
     </section>
 
@@ -430,24 +374,25 @@
 <div class="toast-host" id="toastHost" aria-live="polite" aria-atomic="false"></div>
 
 <dialog id="helpDialog" class="help-dialog">
-  <h2>Phím tắt</h2>
-  <div class="help-grid">
-    <div><kbd>Ctrl</kbd> + <kbd>↵</kbd></div><div>Lập lá số</div>
-    <div><kbd>1</kbd> … <kbd>7</kbd></div><div>Chuyển khu vực làm việc</div>
-    <div><kbd>/</kbd></div><div>Vào ô tìm sao</div>
-    <div><kbd>↵</kbd></div><div>Gửi câu hỏi AI (Shift + ↵ để xuống dòng)</div>
-    <div><kbd>F</kbd></div><div>Bật / tắt tập trung bàn số</div>
-    <div><kbd>T</kbd></div><div>Đổi giao diện sáng / tối</div>
-    <div><kbd>Esc</kbd></div><div>Đóng bảng điều khiển / hộp thoại</div>
+  <div class="dialog-inner">
+    <div class="dialog-head">
+      <h2>Phím tắt & trợ giúp</h2>
+      <button id="helpCloseBtn" class="btn btn-icon-only" type="button" aria-label="Đóng">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="kbd-grid">
+        <div><kbd>Ctrl</kbd>+<kbd>Enter</kbd></div><div>Lập lá số</div>
+        <div><kbd>Ctrl</kbd>+<kbd>K</kbd></div><div>Tìm sao/cách cục</div>
+        <div><kbd>Ctrl</kbd>+<kbd>P</kbd></div><div>In lá số</div>
+        <div><kbd>?</kbd></div><div>Mở trợ giúp</div>
+      </div>
+      <p class="muted">Mọi phát biểu của AI phải khớp <em>Rule ID</em> + <em>Evidence</em> trong cung. Audit trước khi tin.</p>
+    </div>
   </div>
-  <button class="primary" id="helpCloseBtn" type="button">Đóng</button>
 </dialog>
 
-<script src="/web/app.js" defer></script>
-<script src="/web/van10.js" defer></script>
-<script src="/web/audit-ui.js" defer></script>
-<script src="/web/ui-enhancements.js" defer></script>
-<script src="/web/shell.js" defer></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
+<!-- Optional: features.js is injected server-side if present -->
+<script src="style.css" onerror="/* allow missing css in dev */" hidden></script>
+<script src="app.js" defer></script>
 </body>
 </html>
