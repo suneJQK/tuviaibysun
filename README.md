@@ -1,59 +1,52 @@
-# TV AI — Tử Vi Đẩu Số
+# Tử Vi Đẩu Số — Professional UI (Redesigned)
 
-Engine Python tất định → chuẩn hóa dữ liệu → Cách Cục có evidence → AI luận giải → Audit.
+Giao diện chuyên nghiệp cho dự án [suneJQK/tuviaibysun](https://github.com/suneJQK/tuviaibysun).
+Backend FastAPI giữ nguyên (api/index.py, tuvi_engine, system_prompts, …) — chỉ thay **frontend**
+(`web/index.html` + `web/style.css` + `web/app.js`).
 
-## Cấu trúc
+## Cấu trúc gói frontend
 
 ```
-api/index.py          FastAPI app duy nhất (serverless entrypoint)
-web/                  Frontend duy nhất (index.html + app.js + van10.js + audit-ui.js + css)
-ai_mode.html          Trang cấu hình provider/mode AI
-tuvi_engine/          Engine an sao + rules + AI context
-  _engine/            Lớp an sao gốc (không sửa)
-  engine/             Facade V2: chart_builder, cache, serializer, validator
-  rules/              cach_cuc, modifiers, relationships, evaluator
-tu_vi_calculator.py   4 lớp vận hạn
-chart_sanitizer.py    Chuẩn hóa chart trước khi trả ra
-ai_providers/         Gemini (key pool + rotation) / OpenAI + router fallback
-data/                 stars, cach_cuc, modifiers, overrides, relationships, branch aliases
-system_prompts/       System prompt (nối theo thứ tự tên file)
-ai_modes/             Các chế độ luận giải
-tests/                pytest
+web/
+  index.html        ← bố cục mới (sidebar + board 12 cung + tabs AI/Audit/…)
+  style.css         ← theme cosmic (gold/indigo), responsive, dark/light
+  app.js            ← controller: gọi /api/lap-so, /api/luan-giai, audit, JSON, …
+api/
+  index.py          ← re-export từ repo gốc (giữ nguyên contract)
+vercel.json         ← rewrite all → /api/index (FastAPI on Vercel)
+runtime.txt         ← python-3.11.9
+requirements.txt
 ```
 
-## Nguyên tắc
+## Tính năng UI
 
-1. Một frontend duy nhất: `web/`.
-2. Không nhúng HTML/CSS/JS frontend vào backend.
-3. Engine là nguồn authoritative; frontend chỉ hiển thị.
-4. Cách Cục phải có Rule ID + Evidence.
-5. Tam Hợp / Xung Chiếu / Nhị Hợp / Giáp Cung lấy từ Địa Chi, không để AI suy luận.
-6. Vận hạn 10 năm lấy từ engine, không tính lại trong UI.
-7. AI chỉ nhận context đã audit.
-
-## Biến môi trường
-
-| Biến | Bắt buộc | Mô tả |
-|---|---|---|
-| `GEMINI_API_KEY_1..20` | có (hoặc `GEMINI_API_KEY`) | Pool key Gemini, xoay vòng + cooldown |
-| `GEMINI_MODEL` | không | Mặc định `gemini-3.6-flash` |
-| `OPENAI_API_KEY` | không | Provider dự phòng |
-| `OPENAI_MODEL` | không | Model OpenAI |
-| `ALLOWED_ORIGINS` | không | CORS, phân tách bằng dấu phẩy. Rỗng = chỉ same-origin |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | không | Lưu hồ sơ vào Google Sheets |
-| `GOOGLE_SHEET_ID` | không | ID sheet |
-| `DIAGNOSTIC_TOKEN` | không | Mở endpoint `/api/google-sheets-test` |
-| `AI_PAYLOAD_LIMIT` | không | Trần ký tự payload gửi AI, mặc định 400000 |
+- **Sidebar** với form nhập liệu, hồ sơ, lưu trữ
+- **Lá số 12 cung** dạng grid 4×3 + medallion trung tâm hiển thị Cách cục
+- **Tabs**: Lá số · Cách cục · Sao · Quan hệ · Luận giải AI · Audit · Dữ liệu
+- **AI Q&A** với quick-chips, chat UI, copy/export
+- **Audit** panel có badge Engine authoritative
+- **Theme light/dark** · responsive mobile (drawer + tabbar dọc)
+- **Phím tắt**: `Ctrl+Enter` lập lá số, `Ctrl+K` tìm, `?` trợ giúp
+- **In ấn** hỗ trợ `@media print`
+- **Background** starfield + aurora (CSS only, không ảnh hưởng hiệu năng)
 
 ## Chạy local
 
 ```bash
 pip install -r requirements.txt
-uvicorn api.index:app --reload
+uvicorn api.index:app --reload --port 8000
+# → http://localhost:8000
 ```
 
-## Test
+## Deploy lên Vercel
 
-```bash
-pytest -q
-```
+1. Push repo lên GitHub (ví dụ `yourname/tuvi-ai-ui`).
+2. Vào https://vercel.com/new → **Import Project** → chọn repo.
+3. Framework preset: **Other**.
+4. Bấm **Deploy**.
+5. (Tuỳ chọn) Vào **Settings → Environment Variables** để thêm:
+   - `GEMINI_API_KEY` (hoặc `GEMINI_API_KEY_1..20`)
+   - `OPENAI_API_KEY`
+   - `ALLOWED_ORIGINS` = `https://your-app.vercel.app`
+
+> Lưu ý: Vercel hỗ trợ Python runtime, `api/index.py` được serve tự động nhờ `vercel.json` rewrite.
